@@ -31,11 +31,36 @@
       display: block; padding: .75rem 1.5rem; font-size: 1.25rem; border-radius: .3rem;
       color: #fff; background-color: #0275d8; border-color: #0275d8; margin: auto; cursor:pointer;
     }
+    .back-bar {
+      margin-bottom: 16px;
+    }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: rgba(37,99,235,.08);
+  border: 1px solid rgba(37,99,235,.25);
+  transition: all .15s ease;
+}
+
+.back-btn:hover {
+  background: rgba(37,99,235,.15);
+}
   </style>
 </head>
 
 <body>
   <main class="wrap">
+    <div class="back-bar">
+      <a href="./index.html" class="back-btn">← Volver al selector</a>
+    </div>
     <h1>External Web Form (HTML + SDK)</h1>
     <p class="muted"><a href="./index.html">← Volver al selector</a></p>
 
