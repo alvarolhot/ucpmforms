@@ -1,3 +1,4 @@
+<!-- external.html (beautified) -->
 <!doctype html>
 <html lang="es">
 <head>
@@ -10,49 +11,123 @@
     body { margin: 0; background: #f6f7f9; }
     .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
     .card { background: #fff; border-radius: 12px; padding: 18px; margin: 18px 0; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-    a { color: inherit; }
     .muted { color:#6b7280; font-size: 13px; }
+
+    /* ✅ Back button (corporativo) */
+    .back-bar { margin-bottom: 14px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1d4ed8;
+      background: rgba(37,99,235,.08);
+      border: 1px solid rgba(37,99,235,.25);
+      transition: all .15s ease;
+    }
+    .back-btn:hover { background: rgba(37,99,235,.15); }
   </style>
 
-  <!-- (Tu CSS del snippet) -->
+  <!-- ✅ Estilos mejorados para el External Web Form -->
   <style>
-    .ot-form-consent { max-width: 500px; padding: 15px; margin: 0 auto; }
-    .ot-form-signin .ot-checkbox { margin-bottom: 10px; font-weight: normal; }
-    .ot-form-signin .ot-form-control {
-      position: relative; height: auto; padding: 10px; font-size: 16px; margin-bottom: 20px;
-      display: block; width: 100%; line-height: 1.25;
-      border: 1px solid rgba(19, 12, 12, 0.15); border-radius: .25rem;
+    .ot-form-consent {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 10px 6px;
     }
-    .ot-form-signin .ot-form-control:focus { z-index: 2; }
-    .ot-form-signin input[type="email"] { margin-bottom: -1px; border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
-    .ot-checkbox { margin-top: 10px; }
-    .ot-ml-1 { margin-left: 1rem !important; }
+
+    .ot-form-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #0f172a;
+    }
+
+    .ot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 12px 0 8px;
+    }
+
+    .ot-field { display: grid; gap: 6px; }
+
+    .ot-form-consent label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .ot-form-control {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #d7dbe0;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .ot-form-control:focus {
+      border-color: rgba(37,99,235,.65);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .ot-checkboxes {
+      margin-top: 8px;
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      background: #fafafa;
+    }
+
+    .ot-checkboxes label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #111827;
+      margin: 0;
+    }
+
+    .ot-checkboxes input[type="checkbox"]{
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: #2563eb;
+    }
+
     .ot-submit-button {
-      display: block; padding: .75rem 1.5rem; font-size: 1.25rem; border-radius: .3rem;
-      color: #fff; background-color: #0275d8; border-color: #0275d8; margin: auto; cursor:pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 800;
+      border-radius: 12px;
+      color: #fff;
+      background: #2563eb;
+      border: 1px solid #2563eb;
+      cursor: pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
     }
-    .back-bar {
-      margin-bottom: 16px;
+    .ot-submit-button:hover { background: #1d4ed8; border-color: #1d4ed8; }
+    .ot-submit-button:active { transform: translateY(1px); }
+
+    @media (max-width: 720px) {
+      .ot-grid { grid-template-columns: 1fr; }
+      .ot-form-consent { max-width: 520px; }
     }
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1d4ed8;
-  background: rgba(37,99,235,.08);
-  border: 1px solid rgba(37,99,235,.25);
-  transition: all .15s ease;
-}
-
-.back-btn:hover {
-  background: rgba(37,99,235,.15);
-}
   </style>
 </head>
 
@@ -61,38 +136,56 @@
     <div class="back-bar">
       <a href="./index.html" class="back-btn">← Volver al selector</a>
     </div>
+
     <h1>External Web Form (HTML + SDK)</h1>
-    <p class="muted"><a href="./index.html">← Volver al selector</a></p>
+    <p class="muted">Este formulario lo renderizas tú (HTML) y OneTrust gestiona el envío del receipt vía su SDK.</p>
 
     <section class="card">
-      <h2>Formulario External Web Form</h2>
-      <p class="muted">Este formulario lo renderizas tú (HTML) y OneTrust gestiona el submit vía su SDK.</p>
+      <form class="ot-form-consent" action="" method="post"
+            data-ot-cp-id="299d23f4-cdd2-4fc2-9009-9ed75b7719d6-draft"
+            id="otExternalForm">
 
-      <!-- Snippet OneTrust -->
-      <form class="ot-form-consent" action="" method="post" data-ot-cp-id="299d23f4-cdd2-4fc2-9009-9ed75b7719d6-draft" id="otExternalForm">
+        <p class="ot-form-title">Lead capture</p>
+
         <input type="hidden" id="confirmation" name="receiptId" value="" />
 
-        <label for="inputEmail">Email</label>
-        <input type="email" id="inputEmail" class="ot-form-control" placeholder="Email" required>
+        <div class="ot-grid">
+          <div class="ot-field">
+            <label for="inputEmail">Email</label>
+            <input type="email" id="inputEmail" class="ot-form-control" placeholder="name@company.com" required>
+          </div>
 
-        <label for="Mobile">Mobile</label>
-        <input type="text" id="Mobile" class="ot-form-control" placeholder="Mobile">
-
-        <label for="FirstName">FirstName</label>
-        <input type="text" id="FirstName" class="ot-form-control" placeholder="FirstName">
-
-        <label for="LastName">LastName</label>
-        <input type="text" id="LastName" class="ot-form-control" placeholder="LastName">
-
-        <div class="ot-checkbox">
-          <label><input value="Marketing Email Communications" type="checkbox"> Marketing Email Communications</label>
+          <div class="ot-field">
+            <label for="Mobile">Mobile</label>
+            <input type="text" id="Mobile" class="ot-form-control" placeholder="+34...">
+          </div>
         </div>
 
-        <div class="ot-checkbox">
-          <label><input value="Profiling" type="checkbox"> Profiling</label>
+        <div class="ot-grid">
+          <div class="ot-field">
+            <label for="FirstName">First name</label>
+            <input type="text" id="FirstName" class="ot-form-control" placeholder="Alvaro">
+          </div>
+
+          <div class="ot-field">
+            <label for="LastName">Last name</label>
+            <input type="text" id="LastName" class="ot-form-control" placeholder="Lopez">
+          </div>
         </div>
 
-        <button id="trigger" class="ot-submit-button" type="submit">Submit form</button>
+        <div class="ot-checkboxes">
+          <label>
+            <input value="Marketing Email Communications" type="checkbox">
+            Marketing Email Communications
+          </label>
+
+          <label>
+            <input value="Profiling" type="checkbox">
+            Profiling
+          </label>
+        </div>
+
+        <button id="trigger" class="ot-submit-button" type="submit">Submit</button>
       </form>
 
       <script
@@ -107,19 +200,17 @@
 
     <section class="card">
       <h2>Debug</h2>
-      <p class="muted">Abre DevTools → Network y filtra por <code>consentreceipts</code>. También puedes ver eventos si tu SDK los emite.</p>
+      <p class="muted">Abre DevTools → Network y filtra por <code>consentreceipts</code> para ver la llamada.</p>
       <pre id="debug" class="muted"></pre>
     </section>
   </main>
 
   <script>
-    // Si el form intentase hacer un POST tradicional, prevenimos recarga (por si acaso).
-    // El SDK normalmente intercepta, pero así te aseguras de no “romper” la UX.
-    document.getElementById("otExternalForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      document.getElementById("debug").textContent = "Submit capturado. Revisa Network para ver si el SDK ha enviado el receipt.";
-      // El SDK debería enganchar el botón/submit; si no envía nada, revisamos configuración del CP/Integrations.
-    });
+    // Si vieses recarga (no debería), descomenta:
+    // document.getElementById("otExternalForm").addEventListener("submit", function(e){
+    //   e.preventDefault();
+    //   document.getElementById("debug").textContent = "Submit capturado. Revisa Network para ver si el SDK envía el receipt.";
+    // });
   </script>
 </body>
 </html>
