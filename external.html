@@ -1,4 +1,4 @@
-<!-- external.html (beautified) -->
+<!-- external.html (beautified + CP active) -->
 <!doctype html>
 <html lang="es">
 <head>
@@ -142,7 +142,7 @@
 
     <section class="card">
       <form class="ot-form-consent" action="" method="post"
-            data-ot-cp-id="299d23f4-cdd2-4fc2-9009-9ed75b7719d6-draft"
+            data-ot-cp-id="299d23f4-cdd2-4fc2-9009-9ed75b7719d6-active"
             id="otExternalForm">
 
         <p class="ot-form-title">Lead capture</p>
@@ -152,35 +152,35 @@
         <div class="ot-grid">
           <div class="ot-field">
             <label for="inputEmail">Email</label>
-            <input type="email" id="inputEmail" class="ot-form-control" placeholder="name@company.com" required>
+            <input type="email" id="inputEmail" name="Email" class="ot-form-control" placeholder="name@company.com" required>
           </div>
 
           <div class="ot-field">
             <label for="Mobile">Mobile</label>
-            <input type="text" id="Mobile" class="ot-form-control" placeholder="+34...">
+            <input type="text" id="Mobile" name="Mobile" class="ot-form-control" placeholder="+34...">
           </div>
         </div>
 
         <div class="ot-grid">
           <div class="ot-field">
             <label for="FirstName">First name</label>
-            <input type="text" id="FirstName" class="ot-form-control" placeholder="Alvaro">
+            <input type="text" id="FirstName" name="FirstName" class="ot-form-control" placeholder="Alvaro">
           </div>
 
           <div class="ot-field">
             <label for="LastName">Last name</label>
-            <input type="text" id="LastName" class="ot-form-control" placeholder="Lopez">
+            <input type="text" id="LastName" name="LastName" class="ot-form-control" placeholder="Lopez">
           </div>
         </div>
 
         <div class="ot-checkboxes">
           <label>
-            <input value="Marketing Email Communications" type="checkbox">
+            <input value="Marketing Email Communications" type="checkbox" name="purposes">
             Marketing Email Communications
           </label>
 
           <label>
-            <input value="Profiling" type="checkbox">
+            <input value="Profiling" type="checkbox" name="purposes">
             Profiling
           </label>
         </div>
@@ -204,13 +204,5 @@
       <pre id="debug" class="muted"></pre>
     </section>
   </main>
-
-  <script>
-    // Si vieses recarga (no debería), descomenta:
-    // document.getElementById("otExternalForm").addEventListener("submit", function(e){
-    //   e.preventDefault();
-    //   document.getElementById("debug").textContent = "Submit capturado. Revisa Network para ver si el SDK envía el receipt.";
-    // });
-  </script>
 </body>
 </html>
