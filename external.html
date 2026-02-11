@@ -1,4 +1,4 @@
-<!-- external.html (beautified + CP active) -->
+<!-- external.html (fix 405 + CP active) -->
 <!doctype html>
 <html lang="es">
 <head>
@@ -13,7 +13,6 @@
     .card { background: #fff; border-radius: 12px; padding: 18px; margin: 18px 0; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
     .muted { color:#6b7280; font-size: 13px; }
 
-    /* ✅ Back button (corporativo) */
     .back-bar { margin-bottom: 14px; }
     .back-btn {
       display: inline-flex; align-items: center; gap: 8px;
@@ -30,38 +29,13 @@
     .back-btn:hover { background: rgba(37,99,235,.15); }
   </style>
 
-  <!-- ✅ Estilos mejorados para el External Web Form -->
   <style>
-    .ot-form-consent {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 10px 6px;
-    }
-
-    .ot-form-title {
-      margin: 0 0 12px;
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: -0.01em;
-      color: #0f172a;
-    }
-
-    .ot-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin: 12px 0 8px;
-    }
-
+    .ot-form-consent { max-width: 720px; margin: 0 auto; padding: 10px 6px; }
+    .ot-form-title { margin: 0 0 12px; font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: #0f172a; }
+    .ot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0 8px; }
     .ot-field { display: grid; gap: 6px; }
 
-    .ot-form-consent label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-
+    .ot-form-consent label { display: block; font-size: 13px; font-weight: 700; color: #0f172a; }
     .ot-form-control {
       width: 100%;
       padding: 11px 12px;
@@ -72,11 +46,7 @@
       background: #fff;
       transition: border-color .15s ease, box-shadow .15s ease;
     }
-
-    .ot-form-control:focus {
-      border-color: rgba(37,99,235,.65);
-      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
-    }
+    .ot-form-control:focus { border-color: rgba(37,99,235,.65); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
 
     .ot-checkboxes {
       margin-top: 8px;
@@ -87,7 +57,6 @@
       border-radius: 12px;
       background: #fafafa;
     }
-
     .ot-checkboxes label {
       display: flex;
       align-items: center;
@@ -97,13 +66,7 @@
       color: #111827;
       margin: 0;
     }
-
-    .ot-checkboxes input[type="checkbox"]{
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      accent-color: #2563eb;
-    }
+    .ot-checkboxes input[type="checkbox"]{ width: 18px; height: 18px; margin: 0; accent-color: #2563eb; }
 
     .ot-submit-button {
       display: inline-flex;
@@ -124,6 +87,18 @@
     .ot-submit-button:hover { background: #1d4ed8; border-color: #1d4ed8; }
     .ot-submit-button:active { transform: translateY(1px); }
 
+    .debug-box{
+      margin-top: 10px;
+      border: 1px dashed #d7dbe0;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafafa;
+      font-size: 12px;
+      color: #374151;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     @media (max-width: 720px) {
       .ot-grid { grid-template-columns: 1fr; }
       .ot-form-consent { max-width: 520px; }
@@ -141,7 +116,10 @@
     <p class="muted">Este formulario lo renderizas tú (HTML) y OneTrust gestiona el envío del receipt vía su SDK.</p>
 
     <section class="card">
-      <form class="ot-form-consent" action="" method="post"
+      <!-- ✅ IMPORTANTE: action no puede postear a GitHub Pages -->
+      <form class="ot-form-consent"
+            action="javascript:void(0)"
+            method="post"
             data-ot-cp-id="299d23f4-cdd2-4fc2-9009-9ed75b7719d6-active"
             id="otExternalForm">
 
@@ -186,6 +164,8 @@
         </div>
 
         <button id="trigger" class="ot-submit-button" type="submit">Submit</button>
+
+        <div id="debug" class="debug-box">Debug: listo. Abre Network y filtra por "consentreceipts".</div>
       </form>
 
       <script
@@ -197,12 +177,25 @@
         data-ot-consent-register-event="document-load"
       ></script>
     </section>
-
-    <section class="card">
-      <h2>Debug</h2>
-      <p class="muted">Abre DevTools → Network y filtra por <code>consentreceipts</code> para ver la llamada.</p>
-      <pre id="debug" class="muted"></pre>
-    </section>
   </main>
+
+  <script>
+    // ✅ Evita el POST nativo a GitHub Pages (causante del 405)
+    const f = document.getElementById("otExternalForm");
+    const debug = document.getElementById("debug");
+
+    f.addEventListener("submit", function(e){
+      e.preventDefault();
+      debug.textContent =
+        "Submit capturado (sin POST a GitHub). " +
+        "Si el SDK está integrado, deberías ver una llamada en Network → consentreceipts.\n\n" +
+        "Si NO ves llamada: revisa que data-ot-cp-id sea el '-active' correcto y que el tenant (data-ot-id) sea el tuyo.";
+    });
+
+    // (Opcional) Log de click
+    document.getElementById("trigger").addEventListener("click", () => {
+      debug.textContent = "Click en Submit. Revisa Network → consentreceipts…";
+    });
+  </script>
 </body>
 </html>
