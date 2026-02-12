@@ -17,6 +17,8 @@
       --accent: #0ea5e9;
       --shadow: 0 10px 30px rgba(2, 6, 23, .08);
       --radius: 16px;
+      --danger: #ef4444;
+      --success: #22c55e;
     }
 
     *{ box-sizing: border-box; }
@@ -36,9 +38,7 @@
       margin-bottom: 18px;
     }
 
-    .brand{
-      display: flex; align-items: center; gap: 12px;
-    }
+    .brand{ display: flex; align-items: center; gap: 12px; }
 
     .logo{
       width: 38px; height: 38px; border-radius: 12px;
@@ -124,17 +124,8 @@
       color: #0369a1;
     }
 
-    .optTitle{
-      font-size: 18px;
-      margin: 0;
-      letter-spacing: -0.01em;
-    }
-    .optDesc{
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-    }
+    .optTitle{ font-size: 18px; margin: 0; letter-spacing: -0.01em; }
+    .optDesc{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
 
     .bullets{
       margin: 0;
@@ -165,11 +156,7 @@
       letter-spacing: -0.01em;
     }
 
-    .matrix{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
+    .matrix{ display:grid; grid-template-columns: 1fr; gap: 10px; }
 
     .rowItem{
       display:grid;
@@ -200,23 +187,107 @@
       font-size: 11px;
     }
 
-    .col{
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height: 1.45;
+    .col{ color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+
+    /* 🔐 Password gate */
+    .hidden{ display:none !important; }
+
+    .gateWrap{
+      max-width: 520px;
+      margin: 0 auto 16px;
     }
 
-    .hint{
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 12px;
+    .gateCard{
+      background: rgba(255,255,255,.85);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
     }
+
+    .gateTop{
+      display:flex; align-items:center; justify-content: space-between; gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .gateTitle{
+      margin: 0;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .gateHint{ margin: 0; font-size: 12px; color: var(--muted); }
+
+    .gateForm{
+      display:flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .gateInput{
+      flex: 1;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .gateInput:focus{
+      border-color: rgba(37,99,235,.65);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .gateBtn{
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(37,99,235,.25);
+      background: rgba(37,99,235,.10);
+      color: var(--primary-2);
+      font-weight: 900;
+      cursor: pointer;
+      transition: background .15s ease, transform .05s ease;
+      white-space: nowrap;
+    }
+    .gateBtn:hover{ background: rgba(37,99,235,.16); }
+    .gateBtn:active{ transform: translateY(1px); }
+
+    .gateStatus{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      display:flex; align-items:center; gap: 8px;
+    }
+    .statusDot{
+      width: 8px; height: 8px; border-radius: 999px;
+      background: var(--danger);
+    }
+    .statusDot.ok{ background: var(--success); }
+
+    .linkBtn{
+      margin-left: auto;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .linkBtn:hover{ background:#f8fafc; }
 
     @media (max-width: 860px){
       .grid{ grid-template-columns: 1fr; }
       .rowItem{ grid-template-columns: 1fr; }
       .pillbar{ justify-content: flex-start; }
       .header{ flex-direction: column; align-items: flex-start; }
+      .gateForm{ flex-direction: column; }
+      .gateBtn{ width: 100%; }
     }
   </style>
 </head>
@@ -239,7 +310,31 @@
       </div>
     </div>
 
-    <section class="panel">
+    <!-- 🔐 PASSWORD GATE (antes del selector) -->
+    <div class="gateWrap" id="gateWrap">
+      <section class="gateCard" aria-label="Acceso protegido">
+        <div class="gateTop">
+          <div>
+            <p class="gateTitle">Acceso privado</p>
+            <p class="gateHint">Introduce la contraseña para abrir el selector.</p>
+          </div>
+          <button class="linkBtn" id="logoutBtn" type="button" title="Cerrar acceso">Reset</button>
+        </div>
+
+        <form class="gateForm" id="gateForm">
+          <input class="gateInput" id="gatePassword" type="password" placeholder="Contraseña" autocomplete="current-password" />
+          <button class="gateBtn" type="submit">Entrar</button>
+        </form>
+
+        <div class="gateStatus" id="gateStatus">
+          <span class="statusDot" id="statusDot"></span>
+          <span id="statusText">Bloqueado</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ✅ SELECTOR (se desbloquea con password) -->
+    <section class="panel hidden" id="selectorPanel">
       <div class="grid">
         <a class="option" href="./api.html">
           <div class="toprow">
@@ -307,5 +402,61 @@
       </div>
     </section>
   </main>
+
+  <script>
+    // ⚠️ Demo gate: esto NO es seguridad real (está en front). Suficiente para demo.
+    const DEMO_PASSWORD = "Onetrust1"; // 🔧 cámbiala
+
+    const ACCESS_KEY = "ucpm_demo_access_ok"; // sessionStorage
+    const gateWrap = document.getElementById("gateWrap");
+    const selectorPanel = document.getElementById("selectorPanel");
+
+    const gateForm = document.getElementById("gateForm");
+    const gatePassword = document.getElementById("gatePassword");
+
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    function setUnlocked() {
+      sessionStorage.setItem(ACCESS_KEY, "true");
+      gateWrap.classList.add("hidden");
+      selectorPanel.classList.remove("hidden");
+      statusDot.classList.add("ok");
+      statusText.textContent = "Acceso concedido";
+    }
+
+    function setLocked(msg) {
+      sessionStorage.removeItem(ACCESS_KEY);
+      gateWrap.classList.remove("hidden");
+      selectorPanel.classList.add("hidden");
+      statusDot.classList.remove("ok");
+      statusText.textContent = msg || "Bloqueado";
+    }
+
+    gateForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const val = (gatePassword.value || "").trim();
+      if (val === DEMO_PASSWORD) {
+        setUnlocked();
+      } else {
+        setLocked("Contraseña incorrecta");
+        gatePassword.focus();
+        gatePassword.select();
+      }
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      gatePassword.value = "";
+      setLocked("Bloqueado");
+    });
+
+    // Persistencia por sesión
+    if (sessionStorage.getItem(ACCESS_KEY) === "true") {
+      setUnlocked();
+    } else {
+      setLocked("Bloqueado");
+    }
+  </script>
 </body>
 </html>
