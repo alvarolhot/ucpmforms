@@ -20,7 +20,15 @@
     .muted { color: #6b7280; font-size: 13px; }
     .log { margin-top: 14px; border: 1px dashed #d7dbe0; border-radius: 12px; padding: 12px; background: #fafafa; }
     .log pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; }
-    .embedded-container { border: 1px solid #eef0f3; border-radius: 12px; padding: 12px; min-height: 120px; background: #fff; }
+
+    /* Embedded form wrapper */
+    .embedded-container {
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 120px;
+      background: #fff;
+    }
 
     .pill {
       display: inline-flex; align-items: center; gap: 8px;
@@ -256,10 +264,10 @@
 
       <div id="ucpm-embedded-form" class="embedded-container"></div>
 
-      <!-- 🔽 PEGA AQUÍ TU SCRIPT REAL 🔽 -->
+      <!-- ✅ Embedded script real (el que me has pasado) -->
       <script
-        src="https://TU-DOMINIO.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-        data-id="TU-COLLECTION-POINT-ID"
+        src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+        data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
         worker="https://consent-api.onetrust.com"
       ></script>
     </section>
@@ -342,7 +350,7 @@
     vaultDetails.open = true;
   });
 
-  // Cerrar el popover si haces click fuera (opcional, pero útil)
+  // Cerrar el popover si haces click fuera
   document.addEventListener("click", (e) => {
     if (!vaultDetails.open) return;
     if (!vaultDetails.contains(e.target)) vaultDetails.open = false;
@@ -515,7 +523,7 @@
   btnSubmit3.addEventListener("click", submitThreeTimes);
   btnReset.addEventListener("click", resetState);
 
-  log("Página lista. Token Vault está arriba a la derecha (no se commitea).");
+  log("Página lista. Embedded Form cargado + Token Vault arriba a la derecha.");
 })();
 </script>
 
