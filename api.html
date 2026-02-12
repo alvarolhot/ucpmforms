@@ -20,15 +20,7 @@
     .muted { color: #6b7280; font-size: 13px; }
     .log { margin-top: 14px; border: 1px dashed #d7dbe0; border-radius: 12px; padding: 12px; background: #fafafa; }
     .log pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; }
-
-    /* Embedded form wrapper */
-    .embedded-container {
-      border: 1px solid #eef0f3;
-      border-radius: 12px;
-      padding: 12px;
-      min-height: 120px;
-      background: #fff;
-    }
+    .embedded-container { border: 1px solid #eef0f3; border-radius: 12px; padding: 12px; min-height: 160px; background: #fff; }
 
     .pill {
       display: inline-flex; align-items: center; gap: 8px;
@@ -161,10 +153,36 @@
     }
     code.k { font-size: 11.5px; }
 
+    /* Embedded status */
+    .embedStatus{
+      display:flex; align-items:center; gap:10px;
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fafafa;
+      margin-bottom: 10px;
+      font-size: 12.5px;
+      color:#334155;
+    }
+    .embedStatus strong{ font-weight: 900; }
+    .embedStatus .badge{
+      margin-left:auto;
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background:#fff;
+      color:#64748b;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     @media (max-width: 520px){
       .back-bar{ flex-direction: column; align-items: flex-start; }
       details.vaultTopRight{ margin-left: 0; }
       .vaultPopover{ left: 0; right: auto; width: 92vw; }
+      .embedStatus{ flex-wrap: wrap; }
+      .embedStatus .badge{ margin-left: 0; }
     }
   </style>
 </head>
@@ -262,18 +280,17 @@
       <h2>2) Embedded Form UCPM</h2>
       <p class="muted">Aquí se renderiza el formulario estándar de OneTrust (si lo necesitas).</p>
 
-      <div id="ucpm-embedded-form" class="embedded-container"></div>
+      <div class="embedStatus" id="embedStatus">
+        <strong>Estado embedded:</strong>
+        <span id="embedMsg">Pendiente de carga…</span>
+        <span class="badge" id="embedBadge"><span class="dot" id="embedDot"></span><span id="embedBadgeText">Idle</span></span>
+      </div>
 
-      <!-- ✅ Embedded script real (el que me has pasado) -->
-      <script
-        src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-        data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
-        worker="https://consent-api.onetrust.com"
-      ></script>
+      <div id="ucpm-embedded-form" class="embedded-container"></div>
     </section>
 
     <p class="muted">
-      Consejo: abre DevTools → Network y filtra por <code>consentreceipts</code> para ver el POST. Si falla, mira la respuesta del API en el log.
+      Consejo: abre DevTools → Network y filtra por <code>OtFormStub.js</code> o <code>embedded</code>. Si falla, mira Console.
     </p>
   </main>
 
@@ -284,9 +301,13 @@
   // =========================
   const API_URL = "https://privacyportaltrial.onetrust.com/request/v1/consentreceipts";
 
+  // Embedded script (TU SCRIPT REAL)
+  const EMBED_SCRIPT_SRC = "https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js";
+  const EMBED_COLLECTION_POINT_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
+  const EMBED_WORKER = "https://consent-api.onetrust.com";
+
   // 🔐 JWT: se lee SIEMPRE de sessionStorage (no se commitea)
   const TOKEN_KEY = "ucpm_requestInformation_jwt";
-
   function getJwt() {
     const jwt = sessionStorage.getItem(TOKEN_KEY);
     return (jwt && jwt.trim().length > 50) ? jwt.trim() : null;
@@ -312,7 +333,6 @@
       vaultText.textContent = msg || "No cargado";
     }
   }
-
   function refreshVaultUI() {
     const saved = getJwt();
     if (saved) setVaultStatus(true, "JWT cargado");
@@ -359,6 +379,71 @@
   refreshVaultUI();
 
   // =========================
+  // Embedded loader + status
+  // =========================
+  const embedMsg = document.getElementById("embedMsg");
+  const embedDot = document.getElementById("embedDot");
+  const embedBadgeText = document.getElementById("embedBadgeText");
+  const embedContainer = document.getElementById("ucpm-embedded-form");
+
+  function setEmbedStatus(state, msg) {
+    // state: idle | loading | ok | error
+    embedMsg.textContent = msg || "";
+    embedBadgeText.textContent = state.toUpperCase();
+    embedDot.classList.remove("ok");
+    if (state === "ok") embedDot.classList.add("ok");
+    if (state === "loading") embedDot.style.background = "#f59e0b";
+    else if (state === "error") embedDot.style.background = "#ef4444";
+    else if (state === "idle") embedDot.style.background = "#94a3b8";
+    else if (state === "ok") embedDot.style.background = "#22c55e";
+  }
+
+  function loadEmbeddedForm() {
+    setEmbedStatus("loading", "Cargando script de OneTrust…");
+
+    // limpia el contenedor por si recargas
+    embedContainer.innerHTML = "";
+
+    // evita doble carga
+    const existing = document.getElementById("ot-embed-script");
+    if (existing) existing.remove();
+
+    const s = document.createElement("script");
+    s.id = "ot-embed-script";
+    s.src = EMBED_SCRIPT_SRC;
+    s.async = true;
+
+    // attrs EXACTOS que te dio OneTrust
+    s.setAttribute("data-id", EMBED_COLLECTION_POINT_ID);
+    s.setAttribute("worker", EMBED_WORKER);
+
+    s.onload = () => {
+      setEmbedStatus("ok", "Script cargado. Si el formulario no aparece, revisa Console/Network (bloqueo, CORS, etc.).");
+
+      // chequeo simple: si en 2s no se pintó nada, avisamos
+      setTimeout(() => {
+        const hasContent = (embedContainer.textContent || "").trim().length > 0 || embedContainer.children.length > 0;
+        if (!hasContent) {
+          setEmbedStatus("error",
+            "El script cargó pero NO pintó formulario en el contenedor. Mira Console: suele ser bloqueo (adblock), CORS/origin no permitido en el CP, o el script espera otro target."
+          );
+        }
+      }, 2000);
+    };
+
+    s.onerror = () => {
+      setEmbedStatus("error", "No se pudo cargar el script (bloqueo/red/adblock). Revisa DevTools → Network.");
+    };
+
+    // Importante: lo insertamos justo después del contenedor (por si el stub busca el nodo previo)
+    embedContainer.insertAdjacentElement("afterend", s);
+  }
+
+  // carga al arrancar
+  setEmbedStatus("idle", "Iniciando…");
+  window.addEventListener("load", loadEmbeddedForm);
+
+  // =========================
   // Purpose IDs
   // =========================
   const PURPOSE_MARKETING_ID = "d8aecf6d-3f4a-4354-b752-8a6663b5d83f";
@@ -371,7 +456,7 @@
   const DEFAULT_GEO = { country: "ES", state: "MD", stateName: "Madrid" };
 
   // =========================
-  // DOM
+  // DOM (API custom form)
   // =========================
   const logEl = document.getElementById("log");
   const form = document.getElementById("cmsForm");
@@ -523,7 +608,7 @@
   btnSubmit3.addEventListener("click", submitThreeTimes);
   btnReset.addEventListener("click", resetState);
 
-  log("Página lista. Embedded Form cargado + Token Vault arriba a la derecha.");
+  log("Página lista. Embedded loader activo.");
 })();
 </script>
 
