@@ -1,615 +1,170 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UCPM Form Test</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UCPM Test</title>
 
-  <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; background: #f6f7f9; }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
-    .card { background: #fff; border-radius: 12px; padding: 18px; margin: 18px 0; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
-    label { display: grid; gap: 6px; font-size: 14px; }
-    input { padding: 10px 12px; border: 1px solid #d7dbe0; border-radius: 10px; font-size: 14px; }
-    .checkbox { display: flex; align-items: center; gap: 8px; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
-    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #d7dbe0; background: #fff; cursor: pointer; }
-    button:hover { background: #f2f4f7; }
-    .muted { color: #6b7280; font-size: 13px; }
-    .log { margin-top: 14px; border: 1px dashed #d7dbe0; border-radius: 12px; padding: 12px; background: #fafafa; }
-    .log pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; }
-    .embedded-container { border: 1px solid #eef0f3; border-radius: 12px; padding: 12px; min-height: 160px; background: #fff; }
+<style>
+:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+body { margin:0; background:#f6f7f9; }
+.wrap { max-width:980px; margin:0 auto; padding:24px; }
+.card { background:#fff; border-radius:12px; padding:18px; margin:18px 0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+label { display:grid; gap:6px; font-size:14px; }
+input { padding:10px; border:1px solid #d7dbe0; border-radius:10px; }
+button { padding:10px 12px; border-radius:10px; border:1px solid #d7dbe0; background:#fff; cursor:pointer; }
+button:hover { background:#f2f4f7; }
+.log { margin-top:14px; border:1px dashed #d7dbe0; border-radius:12px; padding:12px; background:#fafafa; }
+.log pre { margin:0; font-size:12px; white-space:pre-wrap; }
 
-    .pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px;
-      background: #fff; font-size: 12px; color: #374151;
-    }
+.back-bar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+.back-btn { padding:8px 14px; border-radius:999px; text-decoration:none; font-size:13px; font-weight:600; color:#1d4ed8; background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25); }
 
-    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+details { position:relative; }
+summary { cursor:pointer; font-weight:700; font-size:13px; }
+textarea { width:100%; min-height:60px; padding:8px; border-radius:10px; border:1px solid #d7dbe0; }
 
-    /* ✅ back bar con chip a la derecha */
-    .back-bar{
-      margin-bottom: 16px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 12px;
-    }
-    .back-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px; border-radius: 999px; text-decoration: none;
-      font-size: 13px; font-weight: 600; color: #1d4ed8;
-      background: rgba(37,99,235,.08); border: 1px solid rgba(37,99,235,.25);
-      transition: all .15s ease;
-      white-space: nowrap;
-    }
-    .back-btn:hover { background: rgba(37,99,235,.15); }
+.embedded-container { border:1px solid #eef0f3; border-radius:12px; padding:12px; min-height:160px; }
 
-    /* 🔐 Token Vault (TOP RIGHT, compact chip + popover) */
-    details.vaultTopRight{
-      position: relative;
-      margin-left: auto;
-    }
-
-    summary.vaultChip{
-      list-style: none;
-      cursor: pointer;
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      background: rgba(255,255,255,.9);
-      font-size: 12.5px;
-      font-weight: 900;
-      color:#0f172a;
-      user-select:none;
-      backdrop-filter: blur(6px);
-      white-space: nowrap;
-    }
-    summary.vaultChip::-webkit-details-marker{ display:none; }
-
-    .vaultChipRight{
-      display:flex; align-items:center; gap: 8px;
-      font-weight: 800; font-size: 12px;
-      color:#64748b;
-      padding: 5px 8px;
-      border: 1px solid #e5e7eb;
-      border-radius: 999px;
-      background: rgba(255,255,255,.8);
-      white-space: nowrap;
-    }
-
-    .dot { width:8px; height:8px; border-radius: 999px; background:#ef4444; }
-    .dot.ok { background:#22c55e; }
-
-    .vaultPopover{
-      position: absolute;
-      right: 0;
-      top: calc(100% + 10px);
-      width: min(520px, 86vw);
-      border: 1px solid #eef0f3;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 18px 50px rgba(2, 6, 23, .14);
-      padding: 10px 12px 12px;
-      z-index: 50;
-    }
-
-    textarea.vaultInput{
-      width:100%;
-      min-height: 60px;
-      resize: vertical;
-      padding: 8px 10px;
-      border: 1px solid #d7dbe0;
-      border-radius: 10px;
-      font-size: 12px;
-      line-height: 1.3;
-      outline: none;
-      background: #fff;
-    }
-    textarea.vaultInput:focus{
-      border-color: rgba(37,99,235,.6);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.10);
-    }
-
-    .vaultActions{
-      display:flex; gap: 8px; flex-wrap: wrap;
-      margin-top: 8px; align-items:center;
-    }
-
-    .btnSm{
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-      background: #fff;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btnSm:hover{ background:#f8fafc; }
-
-    .btnPrimary{
-      border-color: rgba(37,99,235,.30);
-      background: rgba(37,99,235,.10);
-      color:#1d4ed8;
-    }
-    .btnDanger{
-      border-color: rgba(239,68,68,.30);
-      background: rgba(239,68,68,.08);
-      color:#b91c1c;
-    }
-
-    .vaultHint{
-      margin: 8px 0 0;
-      font-size: 11.5px;
-      color:#64748b;
-      line-height: 1.35;
-    }
-    code.k { font-size: 11.5px; }
-
-    /* Embedded status */
-    .embedStatus{
-      display:flex; align-items:center; gap:10px;
-      padding: 8px 10px;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      background: #fafafa;
-      margin-bottom: 10px;
-      font-size: 12.5px;
-      color:#334155;
-    }
-    .embedStatus strong{ font-weight: 900; }
-    .embedStatus .badge{
-      margin-left:auto;
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      background:#fff;
-      color:#64748b;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    @media (max-width: 520px){
-      .back-bar{ flex-direction: column; align-items: flex-start; }
-      details.vaultTopRight{ margin-left: 0; }
-      .vaultPopover{ left: 0; right: auto; width: 92vw; }
-      .embedStatus{ flex-wrap: wrap; }
-      .embedStatus .badge{ margin-left: 0; }
-    }
-  </style>
+/* Forzar visibilidad embedded */
+#ucpm-embedded-form, #ot-embedded-form, #onetrust-embedded-form,
+.ot-form, .onetrust-form {
+  min-height:520px !important;
+}
+.embedded-container iframe {
+  width:100% !important;
+  min-height:520px !important;
+  border:0;
+}
+</style>
 </head>
 
 <body>
-  <main class="wrap">
-    <div class="back-bar">
-      <a href="./index.html" class="back-btn">← Volver al selector</a>
+<main class="wrap">
 
-      <!-- 🔐 TOKEN VAULT (arriba a la derecha) -->
-      <details class="vaultTopRight" id="vaultDetails">
-        <summary class="vaultChip" title="Token Vault (requestInformation JWT)">
-          <span>⚙️ Token Vault</span>
-          <span class="vaultChipRight" id="vaultStatus">
-            <span class="dot" id="vaultDot"></span>
-            <span id="vaultText">No cargado</span>
-          </span>
-        </summary>
+<div class="back-bar">
+<a href="./index.html" class="back-btn">← Volver</a>
 
-        <div class="vaultPopover">
-          <textarea class="vaultInput" id="jwtInput" placeholder="Pega aquí el JWT (no se commitea)…"></textarea>
+<details>
+<summary>⚙️ Token Vault</summary>
+<textarea id="jwtInput" placeholder="Pega aquí el JWT"></textarea>
+<button id="saveJwt">Guardar</button>
+<button id="clearJwt">Borrar</button>
+</details>
+</div>
 
-          <div class="vaultActions">
-            <button class="btnSm btnPrimary" type="button" id="btnSaveJwt">Guardar</button>
-            <button class="btnSm" type="button" id="btnUseSaved">Usar guardado</button>
-            <button class="btnSm btnDanger" type="button" id="btnClearJwt">Borrar</button>
-          </div>
+<h1>UCPM API + Embedded</h1>
 
-          <p class="vaultHint">
-            Se guarda en <strong>sessionStorage</strong> (solo esta pestaña). Clave:
-            <code class="k">sessionStorage["ucpm_requestInformation_jwt"]</code>
-          </p>
-        </div>
-      </details>
-    </div>
+<section class="card">
+<h2>1) API Custom Form</h2>
 
-    <h1>Test UCPM – CMS form + Embedded form</h1>
+<form id="cmsForm">
+<div class="row">
+<label>Email
+<input id="email" type="email" required />
+</label>
+<label>Teléfono
+<input id="phone" type="tel" />
+</label>
+</div>
 
-    <section class="card">
-      <h2>1) Formulario tipo CMS (custom) → Consent Receipt API</h2>
-      <p class="muted">
-        Envía un receipt a un Collection Point vía <code>/request/v1/consentreceipts</code> usando el JWT del Collection Point como <code>requestInformation</code>.
-      </p>
+<div class="row">
+<label><input id="marketing" type="checkbox" checked /> Marketing</label>
+<label><input id="profiling" type="checkbox" /> Profiling</label>
+</div>
 
-      <form id="cmsForm">
-        <div class="row">
-          <label>Email (identifier)
-            <input id="email" type="email" required placeholder="example@otprivacy.com" />
-          </label>
-          <label>Teléfono (Mobile)
-            <input id="phone" type="tel" placeholder="+34..." />
-          </label>
-        </div>
+<button type="submit">Enviar</button>
+</form>
 
-        <div class="row">
-          <label>Nombre (FirstName)
-            <input id="firstName" type="text" />
-          </label>
-          <label>Apellido (LastName)
-            <input id="lastName" type="text" />
-          </label>
-        </div>
+<div class="log">
+<strong>Log</strong>
+<pre id="log"></pre>
+</div>
+</section>
 
-        <div class="row">
-          <label class="checkbox">
-            <input id="marketing" type="checkbox" checked /> Marketing (Purpose #1)
-          </label>
-          <label class="checkbox">
-            <input id="profiling" type="checkbox" /> Profiling (Purpose #2)
-          </label>
-        </div>
+<section class="card">
+<h2>2) Embedded Form</h2>
 
-        <div class="actions">
-          <button type="submit">Enviar lead (API)</button>
-          <button type="button" id="btnSubmit3">Enviar 3 veces</button>
-          <button type="button" id="btnReset">Reset estado</button>
-          <label class="pill">
-            <input id="isTest" type="checkbox" checked />
-            test=true
-          </label>
-          <label class="pill">
-            <input id="enableLatest" type="checkbox" />
-            enableDataElementDateValidation=true
-          </label>
-        </div>
-      </form>
+<div class="embedded-container">
+<div id="ucpm-embedded-form"></div>
+<div id="ot-embedded-form"></div>
+<div id="onetrust-embedded-form"></div>
+<div class="ot-form"></div>
+<div class="onetrust-form"></div>
+</div>
 
-      <div class="log">
-        <strong>Log de submits</strong>
-        <pre id="log"></pre>
-      </div>
-    </section>
+<!-- SCRIPT EMBEDDED INLINE (IMPORTANTE) -->
+<script
+src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
+worker="https://consent-api.onetrust.com">
+</script>
 
-    <section class="card">
-      <h2>2) Embedded Form UCPM</h2>
-      <p class="muted">Aquí se renderiza el formulario estándar de OneTrust (si lo necesitas).</p>
+</section>
 
-      <div class="embedStatus" id="embedStatus">
-        <strong>Estado embedded:</strong>
-        <span id="embedMsg">Pendiente de carga…</span>
-        <span class="badge" id="embedBadge"><span class="dot" id="embedDot"></span><span id="embedBadgeText">Idle</span></span>
-      </div>
-
-      <div id="ucpm-embedded-form" class="embedded-container"></div>
-    </section>
-
-    <p class="muted">
-      Consejo: abre DevTools → Network y filtra por <code>OtFormStub.js</code> o <code>embedded</code>. Si falla, mira Console.
-    </p>
-  </main>
+</main>
 
 <script>
-(function () {
-  // =========================
-  // ✅ CONFIG
-  // =========================
-  const API_URL = "https://privacyportaltrial.onetrust.com/request/v1/consentreceipts";
+const API_URL="https://privacyportaltrial.onetrust.com/request/v1/consentreceipts";
+const TOKEN_KEY="ucpm_requestInformation_jwt";
 
-  // Embedded script (TU SCRIPT REAL)
-  const EMBED_SCRIPT_SRC = "https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js";
-  const EMBED_COLLECTION_POINT_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
-  const EMBED_WORKER = "https://consent-api.onetrust.com";
+document.getElementById("saveJwt").onclick=()=>{
+sessionStorage.setItem(TOKEN_KEY,document.getElementById("jwtInput").value.trim());
+alert("JWT guardado en sessionStorage");
+};
+document.getElementById("clearJwt").onclick=()=>{
+sessionStorage.removeItem(TOKEN_KEY);
+alert("JWT eliminado");
+};
 
-  // 🔐 JWT: se lee SIEMPRE de sessionStorage (no se commitea)
-  const TOKEN_KEY = "ucpm_requestInformation_jwt";
-  function getJwt() {
-    const jwt = sessionStorage.getItem(TOKEN_KEY);
-    return (jwt && jwt.trim().length > 50) ? jwt.trim() : null;
-  }
+function log(text,obj){
+const ts=new Date().toISOString();
+document.getElementById("log").textContent=
+"["+ts+"] "+text+"\n"+
+(obj?JSON.stringify(obj,null,2):"")+"\n\n"+
+document.getElementById("log").textContent;
+}
 
-  // =========================
-  // UI: Token Vault (top-right)
-  // =========================
-  const jwtInput = document.getElementById("jwtInput");
-  const btnSaveJwt = document.getElementById("btnSaveJwt");
-  const btnUseSaved = document.getElementById("btnUseSaved");
-  const btnClearJwt = document.getElementById("btnClearJwt");
-  const vaultDot = document.getElementById("vaultDot");
-  const vaultText = document.getElementById("vaultText");
-  const vaultDetails = document.getElementById("vaultDetails");
+document.getElementById("cmsForm").addEventListener("submit",async e=>{
+e.preventDefault();
+const jwt=sessionStorage.getItem(TOKEN_KEY);
+if(!jwt){ alert("No hay JWT cargado"); return; }
 
-  function setVaultStatus(ok, msg) {
-    if (ok) {
-      vaultDot.classList.add("ok");
-      vaultText.textContent = msg || "JWT cargado";
-    } else {
-      vaultDot.classList.remove("ok");
-      vaultText.textContent = msg || "No cargado";
-    }
-  }
-  function refreshVaultUI() {
-    const saved = getJwt();
-    if (saved) setVaultStatus(true, "JWT cargado");
-    else setVaultStatus(false, "No cargado");
-  }
+const body={
+identifier:document.getElementById("email").value.trim(),
+requestInformation:jwt,
+purposes:[
+document.getElementById("marketing").checked?{Id:"d8aecf6d-3f4a-4354-b752-8a6663b5d83f",TransactionType:"CONFIRMED"}:null,
+document.getElementById("profiling").checked?{Id:"eaddf865-9b70-445b-a36c-fdddc9de1697",TransactionType:"CONFIRMED"}:null
+].filter(Boolean),
+dsDataElements:{
+Mobile:document.getElementById("phone").value.trim()
+}
+};
 
-  btnSaveJwt.addEventListener("click", () => {
-    const val = (jwtInput.value || "").trim();
-    if (!val || val.length < 50) {
-      setVaultStatus(false, "JWT inválido");
-      jwtInput.focus();
-      return;
-    }
-    sessionStorage.setItem(TOKEN_KEY, val);
-    jwtInput.value = "";
-    setVaultStatus(true, "Guardado");
-    vaultDetails.open = false;
-  });
+log("POST consentreceipts",body);
 
-  btnUseSaved.addEventListener("click", () => {
-    const saved = getJwt();
-    if (!saved) {
-      setVaultStatus(false, "No hay guardado");
-      jwtInput.focus();
-      return;
-    }
-    setVaultStatus(true, "Listo");
-    vaultDetails.open = false;
-  });
+try{
+const res=await fetch(API_URL,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(body)
+});
+const data=await res.json().catch(()=>null);
+log("RESULT", {status:res.status,data});
+}catch(err){
+log("ERROR",err.message);
+}
+});
 
-  btnClearJwt.addEventListener("click", () => {
-    sessionStorage.removeItem(TOKEN_KEY);
-    jwtInput.value = "";
-    setVaultStatus(false, "Borrado");
-    vaultDetails.open = true;
-  });
-
-  // Cerrar el popover si haces click fuera
-  document.addEventListener("click", (e) => {
-    if (!vaultDetails.open) return;
-    if (!vaultDetails.contains(e.target)) vaultDetails.open = false;
-  });
-
-  refreshVaultUI();
-
-  // =========================
-  // Embedded loader + status
-  // =========================
-  const embedMsg = document.getElementById("embedMsg");
-  const embedDot = document.getElementById("embedDot");
-  const embedBadgeText = document.getElementById("embedBadgeText");
-  const embedContainer = document.getElementById("ucpm-embedded-form");
-
-  function setEmbedStatus(state, msg) {
-    // state: idle | loading | ok | error
-    embedMsg.textContent = msg || "";
-    embedBadgeText.textContent = state.toUpperCase();
-    embedDot.classList.remove("ok");
-    if (state === "ok") embedDot.classList.add("ok");
-    if (state === "loading") embedDot.style.background = "#f59e0b";
-    else if (state === "error") embedDot.style.background = "#ef4444";
-    else if (state === "idle") embedDot.style.background = "#94a3b8";
-    else if (state === "ok") embedDot.style.background = "#22c55e";
-  }
-
-  function loadEmbeddedForm() {
-    setEmbedStatus("loading", "Cargando script de OneTrust…");
-
-    // limpia el contenedor por si recargas
-    embedContainer.innerHTML = "";
-
-    // evita doble carga
-    const existing = document.getElementById("ot-embed-script");
-    if (existing) existing.remove();
-
-    const s = document.createElement("script");
-    s.id = "ot-embed-script";
-    s.src = EMBED_SCRIPT_SRC;
-    s.async = true;
-
-    // attrs EXACTOS que te dio OneTrust
-    s.setAttribute("data-id", EMBED_COLLECTION_POINT_ID);
-    s.setAttribute("worker", EMBED_WORKER);
-
-    s.onload = () => {
-      setEmbedStatus("ok", "Script cargado. Si el formulario no aparece, revisa Console/Network (bloqueo, CORS, etc.).");
-
-      // chequeo simple: si en 2s no se pintó nada, avisamos
-      setTimeout(() => {
-        const hasContent = (embedContainer.textContent || "").trim().length > 0 || embedContainer.children.length > 0;
-        if (!hasContent) {
-          setEmbedStatus("error",
-            "El script cargó pero NO pintó formulario en el contenedor. Mira Console: suele ser bloqueo (adblock), CORS/origin no permitido en el CP, o el script espera otro target."
-          );
-        }
-      }, 2000);
-    };
-
-    s.onerror = () => {
-      setEmbedStatus("error", "No se pudo cargar el script (bloqueo/red/adblock). Revisa DevTools → Network.");
-    };
-
-    // Importante: lo insertamos justo después del contenedor (por si el stub busca el nodo previo)
-    embedContainer.insertAdjacentElement("afterend", s);
-  }
-
-  // carga al arrancar
-  setEmbedStatus("idle", "Iniciando…");
-  window.addEventListener("load", loadEmbeddedForm);
-
-  // =========================
-  // Purpose IDs
-  // =========================
-  const PURPOSE_MARKETING_ID = "d8aecf6d-3f4a-4354-b752-8a6663b5d83f";
-  const PURPOSE_PROFILING_ID = "eaddf865-9b70-445b-a36c-fdddc9de1697";
-
-  const CHECKED_TRANSACTION_TYPE = "CONFIRMED";
-  const INCLUDE_UNCHECKED_PURPOSES = false;
-  const UNCHECKED_TRANSACTION_TYPE = "NOTGIVEN";
-
-  const DEFAULT_GEO = { country: "ES", state: "MD", stateName: "Madrid" };
-
-  // =========================
-  // DOM (API custom form)
-  // =========================
-  const logEl = document.getElementById("log");
-  const form = document.getElementById("cmsForm");
-  const btnSubmit3 = document.getElementById("btnSubmit3");
-  const btnReset = document.getElementById("btnReset");
-  const isTestEl = document.getElementById("isTest");
-  const enableLatestEl = document.getElementById("enableLatest");
-
-  const emailEl = document.getElementById("email");
-  const phoneEl = document.getElementById("phone");
-  const firstNameEl = document.getElementById("firstName");
-  const lastNameEl = document.getElementById("lastName");
-  const marketingEl = document.getElementById("marketing");
-  const profilingEl = document.getElementById("profiling");
-
-  let submitCounter = 0;
-
-  function log(text, obj) {
-    const ts = new Date().toISOString();
-    const msg = obj ? text + "\n" + JSON.stringify(obj, null, 2) : text;
-    logEl.textContent = "[" + ts + "] " + msg + "\n\n" + logEl.textContent;
-    console.log(text, obj || "");
-  }
-
-  function buildPurposes() {
-    const purposes = [];
-
-    if (marketingEl.checked) {
-      purposes.push({ Id: PURPOSE_MARKETING_ID, TransactionType: CHECKED_TRANSACTION_TYPE });
-    } else if (INCLUDE_UNCHECKED_PURPOSES) {
-      purposes.push({ Id: PURPOSE_MARKETING_ID, TransactionType: UNCHECKED_TRANSACTION_TYPE });
-    }
-
-    if (profilingEl.checked) {
-      purposes.push({ Id: PURPOSE_PROFILING_ID, TransactionType: CHECKED_TRANSACTION_TYPE });
-    } else if (INCLUDE_UNCHECKED_PURPOSES) {
-      purposes.push({ Id: PURPOSE_PROFILING_ID, TransactionType: UNCHECKED_TRANSACTION_TYPE });
-    }
-
-    return purposes;
-  }
-
-  function buildRequestBody() {
-    const identifier = (emailEl.value || "").trim();
-    const purposes = buildPurposes();
-
-    const jwt = getJwt();
-    if (!jwt) {
-      vaultDetails.open = true;
-      throw new Error("No hay JWT cargado. Abre Token Vault y pulsa Guardar.");
-    }
-
-    const body = {
-      identifier,
-      requestInformation: jwt,
-      purposes,
-      dsDataElements: {
-        Mobile: (phoneEl.value || "").trim(),
-        LastName: (lastNameEl.value || "").trim(),
-        FirstName: (firstNameEl.value || "").trim()
-      }
-    };
-
-    if (isTestEl.checked) body.test = true;
-    if (enableLatestEl.checked) body.enableDataElementDateValidation = true;
-
-    if (DEFAULT_GEO && DEFAULT_GEO.country) {
-      body.geolocation = {
-        country: DEFAULT_GEO.country,
-        state: DEFAULT_GEO.state,
-        stateName: DEFAULT_GEO.stateName,
-        purposeIds: profilingEl.checked ? [PURPOSE_PROFILING_ID] : []
-      };
-    }
-
-    return body;
-  }
-
-  async function sendConsentReceipt(requestBody) {
-    if (!requestBody.identifier) throw new Error("Missing identifier (email).");
-
-    if (!Array.isArray(requestBody.purposes) || requestBody.purposes.length === 0) {
-      log("⚠️ purposes[] vacío → según doc, NO se generará receipt. Marca al menos un checkbox.");
-    }
-
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody)
-    });
-
-    const contentType = res.headers.get("content-type") || "";
-    let data = null;
-
-    if (contentType.includes("application/json")) data = await res.json().catch(() => null);
-    else {
-      const text = await res.text().catch(() => "");
-      data = text ? { raw: text } : null;
-    }
-
-    if (!res.ok) {
-      const err = new Error("API error: HTTP " + res.status);
-      err.details = data;
-      throw err;
-    }
-
-    return { status: res.status, data };
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    submitCounter++;
-
-    let requestBody;
-    try {
-      requestBody = buildRequestBody();
-    } catch (err) {
-      log("❌ Falta JWT", { message: err.message || String(err) });
-      return;
-    }
-
-    const safeLogBody = JSON.parse(JSON.stringify(requestBody));
-    if (safeLogBody.requestInformation) safeLogBody.requestInformation = "[REDACTED_JWT]";
-
-    log("SUBMIT #" + submitCounter + " → POST " + API_URL, safeLogBody);
-
-    try {
-      const result = await sendConsentReceipt(requestBody);
-      log("✅ Resultado API (ok)", result);
-    } catch (err) {
-      log("❌ Error API", { message: err.message || String(err), details: err.details || null });
-    }
-  }
-
-  async function submitThreeTimes() {
-    for (let i = 0; i < 3; i++) {
-      await handleSubmit({ preventDefault() {} });
-      await new Promise(r => setTimeout(r, 600));
-    }
-  }
-
-  function resetState() {
-    submitCounter = 0;
-    logEl.textContent = "";
-    log("Estado JS reseteado");
-  }
-
-  form.addEventListener("submit", handleSubmit);
-  btnSubmit3.addEventListener("click", submitThreeTimes);
-  btnReset.addEventListener("click", resetState);
-
-  log("Página lista. Embedded loader activo.");
-})();
+// DEBUG GLOBALS
+console.log("OT embedded globals:",{
+OtFormStub:window.OtFormStub,
+OneTrust:window.OneTrust,
+Onetrust:window.Onetrust,
+__OT__:window.__OT__
+});
 </script>
 
 </body>
