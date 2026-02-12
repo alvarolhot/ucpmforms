@@ -40,71 +40,101 @@
     }
     .back-btn:hover { background: rgba(37,99,235,.15); }
 
-    /* 🔐 Token Vault */
-    .vault {
+    /* 🔐 Token Vault (COMPACT) */
+    details.vaultWrap{
+      margin-top: 14px;
       border: 1px solid #eef0f3;
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(37,99,235,.06), rgba(255,255,255,1) 55%);
-      padding: 14px;
+      border-radius: 12px;
+      background: #fafafa;
+      overflow: hidden;
     }
-    .vaultTop {
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom: 10px;
+    details.vaultWrap[open]{ background: #fff; }
+
+    summary.vaultSummary{
+      list-style: none;
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#0f172a;
+      background: linear-gradient(180deg, rgba(37,99,235,.06), rgba(255,255,255,0));
     }
-    .vaultTitle {
-      margin:0; font-size: 14px; font-weight: 900; color:#0f172a;
-      letter-spacing: -0.01em;
-    }
-    .vaultHint { margin: 4px 0 0; font-size: 12px; color: #64748b; }
-    .vaultStatus {
-      display:flex; align-items:center; gap:8px;
-      font-size: 12px; color:#64748b;
-      padding: 6px 10px; border-radius: 999px;
-      background: rgba(255,255,255,.75);
+    summary.vaultSummary::-webkit-details-marker{ display:none; }
+
+    .vaultSummaryRight{
+      display:flex; align-items:center; gap: 8px;
+      font-weight: 700; font-size: 12px;
+      color:#64748b;
+      padding: 5px 8px;
       border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      background: rgba(255,255,255,.8);
       white-space: nowrap;
     }
     .dot { width:8px; height:8px; border-radius: 999px; background:#ef4444; }
     .dot.ok { background:#22c55e; }
+
+    .vaultInner{
+      padding: 10px 12px 12px;
+      border-top: 1px solid #eef0f3;
+    }
+
     textarea.vaultInput{
       width:100%;
-      min-height: 92px;
+      min-height: 60px;   /* más pequeño */
       resize: vertical;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border: 1px solid #d7dbe0;
-      border-radius: 12px;
-      font-size: 12.5px;
-      line-height: 1.35;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.3;
       outline: none;
+      background: #fff;
     }
     textarea.vaultInput:focus{
       border-color: rgba(37,99,235,.6);
-      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.10);
     }
+
     .vaultActions{
-      display:flex; gap:10px; flex-wrap: wrap;
-      margin-top: 10px; align-items:center;
+      display:flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 8px; align-items:center;
     }
+
+    .btnSm{
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btnSm:hover{ background:#f8fafc; }
+
     .btnPrimary{
-      border-color: rgba(37,99,235,.35);
+      border-color: rgba(37,99,235,.30);
       background: rgba(37,99,235,.10);
       color:#1d4ed8;
-      font-weight: 800;
     }
     .btnDanger{
-      border-color: rgba(239,68,68,.35);
+      border-color: rgba(239,68,68,.30);
       background: rgba(239,68,68,.08);
       color:#b91c1c;
-      font-weight: 800;
     }
-    .btnGhost{
-      border-color: #e5e7eb;
-      background:#fff;
-      color:#334155;
-      font-weight: 700;
+
+    .vaultHint{
+      margin: 8px 0 0;
+      font-size: 11.5px;
+      color:#64748b;
+      line-height: 1.35;
     }
-    .small { font-size: 12px; color:#64748b; }
-    code.k { font-size: 12px; }
+
+    code.k { font-size: 11.5px; }
   </style>
 </head>
 
@@ -115,37 +145,6 @@
     </div>
 
     <h1>Test UCPM – CMS form + Embedded form</h1>
-
-    <!-- 🔐 TOKEN VAULT (NO se commitea) -->
-    <section class="card">
-      <div class="vault">
-        <div class="vaultTop">
-          <div>
-            <p class="vaultTitle">Token Vault (requestInformation JWT)</p>
-            <p class="vaultHint">
-              Pega el JWT aquí. Se guarda solo en <strong>sessionStorage</strong> (esta pestaña) y <strong>NO</strong> se sube a GitHub.
-            </p>
-          </div>
-          <div class="vaultStatus" id="vaultStatus">
-            <span class="dot" id="vaultDot"></span>
-            <span id="vaultText">No cargado</span>
-          </div>
-        </div>
-
-        <textarea class="vaultInput" id="jwtInput" placeholder="Pega aquí el requestInformation JWT…"></textarea>
-
-        <div class="vaultActions">
-          <button class="btnPrimary" type="button" id="btnSaveJwt">Guardar JWT</button>
-          <button class="btnGhost" type="button" id="btnUseSaved">Usar guardado</button>
-          <button class="btnDanger" type="button" id="btnClearJwt">Borrar JWT</button>
-          <span class="small">Tip: si usas el launcher, puedes guardar el JWT una vez y ya.</span>
-        </div>
-
-        <p class="small" style="margin:10px 0 0;">
-          Clave: <code class="k">sessionStorage["ucpm_requestInformation_jwt"]</code>
-        </p>
-      </div>
-    </section>
 
     <section class="card">
       <h2>1) Formulario tipo CMS (custom) → Consent Receipt API</h2>
@@ -214,6 +213,32 @@
         data-id="TU-COLLECTION-POINT-ID"
         worker="https://consent-api.onetrust.com"
       ></script>
+
+      <!-- 🔐 TOKEN VAULT (compacto, debajo del embedded form) -->
+      <details class="vaultWrap" id="vaultDetails">
+        <summary class="vaultSummary">
+          <span>⚙️ Advanced: Token Vault (requestInformation JWT)</span>
+          <span class="vaultSummaryRight" id="vaultStatus">
+            <span class="dot" id="vaultDot"></span>
+            <span id="vaultText">No cargado</span>
+          </span>
+        </summary>
+
+        <div class="vaultInner">
+          <textarea class="vaultInput" id="jwtInput" placeholder="Pega aquí el JWT (no se commitea)…"></textarea>
+
+          <div class="vaultActions">
+            <button class="btnSm btnPrimary" type="button" id="btnSaveJwt">Guardar</button>
+            <button class="btnSm" type="button" id="btnUseSaved">Usar guardado</button>
+            <button class="btnSm btnDanger" type="button" id="btnClearJwt">Borrar</button>
+          </div>
+
+          <p class="vaultHint">
+            Se guarda en <strong>sessionStorage</strong> (solo esta pestaña). Clave:
+            <code class="k">sessionStorage["ucpm_requestInformation_jwt"]</code>
+          </p>
+        </div>
+      </details>
     </section>
 
     <p class="muted">
@@ -237,7 +262,7 @@
   }
 
   // =========================
-  // UI: Token Vault
+  // UI: Token Vault (compact)
   // =========================
   const jwtInput = document.getElementById("jwtInput");
   const btnSaveJwt = document.getElementById("btnSaveJwt");
@@ -245,11 +270,14 @@
   const btnClearJwt = document.getElementById("btnClearJwt");
   const vaultDot = document.getElementById("vaultDot");
   const vaultText = document.getElementById("vaultText");
+  const vaultDetails = document.getElementById("vaultDetails");
 
   function setVaultStatus(ok, msg) {
     if (ok) {
       vaultDot.classList.add("ok");
       vaultText.textContent = msg || "JWT cargado";
+      // opcional: colapsar automáticamente cuando ya está guardado
+      // vaultDetails.open = false;
     } else {
       vaultDot.classList.remove("ok");
       vaultText.textContent = msg || "No cargado";
@@ -258,12 +286,8 @@
 
   function refreshVaultUI() {
     const saved = getJwt();
-    if (saved) {
-      setVaultStatus(true, "JWT cargado");
-      // No rellenamos el textarea automáticamente para evitar exponerlo en pantalla.
-    } else {
-      setVaultStatus(false, "No cargado");
-    }
+    if (saved) setVaultStatus(true, "JWT cargado");
+    else setVaultStatus(false, "No cargado");
   }
 
   btnSaveJwt.addEventListener("click", () => {
@@ -275,23 +299,26 @@
     }
     sessionStorage.setItem(TOKEN_KEY, val);
     jwtInput.value = "";
-    setVaultStatus(true, "JWT guardado (sesión)");
+    setVaultStatus(true, "Guardado");
+    vaultDetails.open = false; // 👈 para que no estorbe
   });
 
   btnUseSaved.addEventListener("click", () => {
     const saved = getJwt();
     if (!saved) {
-      setVaultStatus(false, "No hay JWT guardado");
+      setVaultStatus(false, "No hay guardado");
       jwtInput.focus();
       return;
     }
-    setVaultStatus(true, "JWT listo");
+    setVaultStatus(true, "Listo");
+    vaultDetails.open = false;
   });
 
   btnClearJwt.addEventListener("click", () => {
     sessionStorage.removeItem(TOKEN_KEY);
     jwtInput.value = "";
     setVaultStatus(false, "Borrado");
+    vaultDetails.open = true;
   });
 
   refreshVaultUI();
@@ -358,7 +385,9 @@
 
     const jwt = getJwt();
     if (!jwt) {
-      throw new Error("No hay JWT cargado. Pégalo en Token Vault y pulsa 'Guardar JWT'.");
+      // Abrimos el vault para que lo veas si intentas enviar sin token
+      vaultDetails.open = true;
+      throw new Error("No hay JWT cargado. Abre 'Advanced: Token Vault' y pulsa Guardar.");
     }
 
     const body = {
@@ -403,9 +432,8 @@
     const contentType = res.headers.get("content-type") || "";
     let data = null;
 
-    if (contentType.includes("application/json")) {
-      data = await res.json().catch(() => null);
-    } else {
+    if (contentType.includes("application/json")) data = await res.json().catch(() => null);
+    else {
       const text = await res.text().catch(() => "");
       data = text ? { raw: text } : null;
     }
@@ -440,10 +468,7 @@
       const result = await sendConsentReceipt(requestBody);
       log("✅ Resultado API (ok)", result);
     } catch (err) {
-      log("❌ Error API", {
-        message: err.message || String(err),
-        details: err.details || null
-      });
+      log("❌ Error API", { message: err.message || String(err), details: err.details || null });
     }
   }
 
@@ -464,7 +489,7 @@
   btnSubmit3.addEventListener("click", submitThreeTimes);
   btnReset.addEventListener("click", resetState);
 
-  log("Página lista. Usa 'Token Vault' para cargar el JWT (no se commitea).");
+  log("Página lista. Token Vault está debajo del Embedded Form (Advanced).");
 })();
 </script>
 
