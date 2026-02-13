@@ -46,10 +46,9 @@
     .container{
       border:1px solid #eef0f3; border-radius:14px;
       padding:14px; min-height:280px; background:#fff;
-      overflow: visible; /* ✅ important: avoid clipping injected iframe/content */
+      overflow: visible; /* important */
     }
 
-    /* Keep whatever OT injects inside */
     #ucpm-embedded-form, #ucpm-embedded-form * { box-sizing: border-box; }
     #ucpm-embedded-form iframe {
       width: 100% !important;
@@ -58,37 +57,22 @@
       display: block;
       min-height: 560px;
     }
-    #ucpm-embedded-form > * { max-width: 100% !important; }
 
-    details.guide { margin-top: 12px; }
-    details.guide > summary{
-      cursor:pointer; list-style:none;
-      display:flex; align-items:center; gap:10px;
-      font-weight:900; font-size:13px;
-      padding:10px 12px;
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      background:#fff;
-      user-select:none;
-    }
-    details.guide > summary::-webkit-details-marker{ display:none; }
-    .guideBody { margin-top: 10px; color:#334155; font-size: 13px; line-height: 1.45; }
-    .k {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px; padding: 2px 6px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa;
-    }
-    .guideBody ul { margin: 10px 0 0; padding-left: 18px; }
-    .guideBody li { margin: 8px 0; }
-
-    @media (max-width: 760px) {
-      .embedStatus { flex-wrap:wrap; }
-      .badge { margin-left:0; }
+    /* Button trigger styling (can be hidden if you want) */
+    .ot-open-webform{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:12px; border:1px solid #e5e7eb;
+      background:#fff; font-weight:800; cursor:pointer;
     }
   </style>
 
-  <!-- ✅ Keep stub in HEAD only if you also place a dedicated placeholder the stub can find.
-       ✅ For inline embeds, most reliable is placing the stub where you want it to render (inside container).
-       ✅ So: remove the stub from head. -->
+  <!-- ✅ OneTrust stub (keep in head) -->
+  <script
+    defer
+    src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+    data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
+    worker="https://consent-api.onetrust.com"
+  ></script>
 </head>
 
 <body>
@@ -107,35 +91,12 @@
         <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
       </div>
 
-      <!-- ✅ Inline render target: place the OneTrust stub HERE so it injects content inside this container -->
       <div id="ucpm-embedded-form" class="container">
-        <script
-          src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-          data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
-          worker="https://consent-api.onetrust.com"
-        ></script>
+        <!-- ✅ Use the OneTrust trigger button INSIDE the container -->
+        <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877">
+          Open web form
+        </button>
       </div>
-
-      <!-- Optional: add the button trigger if you want on-demand open behavior (mainly for modal setups) -->
-      <!--
-      <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877" style="margin-top:12px;">
-        Open web form
-      </button>
-      -->
-
-      <details class="guide">
-        <summary>🛠 Troubleshooting (if it doesn’t render)</summary>
-        <div class="guideBody">
-          <ul>
-            <li><strong>Origin restrictions on the Collection Point</strong>: your GitHub Pages domain must be allowed.</li>
-            <li><strong>Adblock / privacy extensions</strong>: test in Incognito with extensions disabled.</li>
-            <li><strong>Wrong environment/domain</strong>: confirm you’re using the correct tenant domain (trial vs prod vs cdn).</li>
-          </ul>
-          <div class="muted" style="margin-top:10px;">
-            Check DevTools → <span class="k">Console</span> for errors, and <span class="k">Network</span> for blocked requests.
-          </div>
-        </div>
-      </details>
     </section>
   </main>
 
@@ -145,6 +106,7 @@
       const dot = document.getElementById("dot");
       const state = document.getElementById("state");
       const container = document.getElementById("ucpm-embedded-form");
+      const btn = document.getElementById("ot-0412853a-91ac-4d1b-ae16-0555b88fb877");
 
       function setStatus(s, m){
         state.textContent = s.toUpperCase();
@@ -156,26 +118,35 @@
           "#94a3b8";
       }
 
-      setStatus("loading","Waiting for OneTrust to render…");
+      setStatus("loading","Loading OneTrust…");
 
-      // Render detection (give it a bit more time than 1.8s; GH Pages can be slower)
-      setTimeout(() => {
-        const hasIframe = container.querySelector("iframe");
-        const hasContent = container.children.length > 0 || (container.textContent || "").trim().length > 0;
+      // auto-open after stub is ready
+      function tryOpen(){
+        if (!btn) return;
+        btn.click();
+      }
 
-        if (hasIframe || hasContent) {
-          setStatus("ok","Form rendered.");
-        } else {
-          setStatus("error","Nothing rendered. If Network is 200, the usual cause is the stub injected outside the target or the CP is configured differently (modal vs inline).");
-        }
+      window.addEventListener("load", () => {
+        // try a few times (GH Pages can be slower)
+        let attempts = 0;
+        const t = setInterval(() => {
+          attempts++;
+          tryOpen();
 
-        console.log("OT embedded globals:", {
-          OtFormStub: window.OtFormStub,
-          OneTrust: window.OneTrust,
-          Onetrust: window.Onetrust,
-          __OT__: window.__OT__
-        });
-      }, 3000);
+          const iframe = container.querySelector("iframe");
+          if (iframe) {
+            clearInterval(t);
+            setStatus("ok","Form rendered (iframe detected).");
+            // optional: hide the button once rendered
+            btn.style.display = "none";
+          }
+
+          if (attempts >= 10) {
+            clearInterval(t);
+            setStatus("error","No iframe detected. If Network is 200, the usual cause is CP not linked to this trigger id or CP isn’t configured to render inline via trigger.");
+          }
+        }, 600);
+      });
     })();
   </script>
 </body>
