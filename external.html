@@ -1,201 +1,399 @@
-<!-- external.html (fix 405 + CP active) -->
+<!-- external.html (External Web Form Integration / API) -->
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UCPM Demo – External Web Form</title>
+  <title>UCPM – External Web Form (API)</title>
 
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #f6f7f9; }
     .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
     .card { background: #fff; border-radius: 12px; padding: 18px; margin: 18px 0; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-    .muted { color:#6b7280; font-size: 13px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    label { display: grid; gap: 6px; font-size: 14px; }
+    input { padding: 10px 12px; border: 1px solid #d7dbe0; border-radius: 10px; font-size: 14px; }
+    .checkbox { display: flex; align-items: center; gap: 8px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #d7dbe0; background: #fff; cursor: pointer; }
+    button:hover { background: #f2f4f7; }
+    .muted { color: #6b7280; font-size: 13px; }
+    .log { margin-top: 14px; border: 1px dashed #d7dbe0; border-radius: 12px; padding: 12px; background: #fafafa; }
+    .log pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; }
 
-    .back-bar { margin-bottom: 14px; }
+    /* ✅ Top bar (old selector-style) */
+    .topbar{
+      margin-bottom: 16px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+    }
     .back-btn {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 600;
-      color: #1d4ed8;
-      background: rgba(37,99,235,.08);
-      border: 1px solid rgba(37,99,235,.25);
+      padding: 8px 14px; border-radius: 999px; text-decoration: none;
+      font-size: 13px; font-weight: 600; color: #1d4ed8;
+      background: rgba(37,99,235,.08); border: 1px solid rgba(37,99,235,.25);
       transition: all .15s ease;
+      white-space: nowrap;
     }
     .back-btn:hover { background: rgba(37,99,235,.15); }
-  </style>
 
-  <style>
-    .ot-form-consent { max-width: 720px; margin: 0 auto; padding: 10px 6px; }
-    .ot-form-title { margin: 0 0 12px; font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: #0f172a; }
-    .ot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0 8px; }
-    .ot-field { display: grid; gap: 6px; }
-
-    .ot-form-consent label { display: block; font-size: 13px; font-weight: 700; color: #0f172a; }
-    .ot-form-control {
-      width: 100%;
-      padding: 11px 12px;
-      border: 1px solid #d7dbe0;
-      border-radius: 10px;
-      font-size: 14px;
-      outline: none;
-      background: #fff;
-      transition: border-color .15s ease, box-shadow .15s ease;
-    }
-    .ot-form-control:focus { border-color: rgba(37,99,235,.65); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
-
-    .ot-checkboxes {
-      margin-top: 8px;
-      display: grid;
+    /* 🔐 Token Vault (top-right chip + popover) */
+    details.vaultTopRight{ position: relative; margin-left: auto; }
+    summary.vaultChip{
+      list-style: none;
+      cursor: pointer;
+      display:inline-flex;
+      align-items:center;
       gap: 10px;
-      padding: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: rgba(255,255,255,.9);
+      font-size: 12.5px;
+      font-weight: 900;
+      color:#0f172a;
+      user-select:none;
+      white-space: nowrap;
+    }
+    summary.vaultChip::-webkit-details-marker{ display:none; }
+    .vaultChipRight{
+      display:flex; align-items:center; gap: 8px;
+      font-weight: 800; font-size: 12px;
+      color:#64748b;
+      padding: 5px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      background: rgba(255,255,255,.8);
+      white-space: nowrap;
+    }
+    .dot { width:8px; height:8px; border-radius: 999px; background:#ef4444; }
+    .dot.ok { background:#22c55e; }
+
+    .vaultPopover{
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      width: min(520px, 86vw);
       border: 1px solid #eef0f3;
       border-radius: 12px;
-      background: #fafafa;
+      background: #fff;
+      box-shadow: 0 18px 50px rgba(2, 6, 23, .14);
+      padding: 10px 12px 12px;
+      z-index: 50;
     }
-    .ot-checkboxes label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      font-size: 13px;
-      color: #111827;
-      margin: 0;
-    }
-    .ot-checkboxes input[type="checkbox"]{ width: 18px; height: 18px; margin: 0; accent-color: #2563eb; }
-
-    .ot-submit-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin-top: 14px;
-      padding: 12px 16px;
-      font-size: 15px;
-      font-weight: 800;
-      border-radius: 12px;
-      color: #fff;
-      background: #2563eb;
-      border: 1px solid #2563eb;
-      cursor: pointer;
-      transition: transform .05s ease, background .15s ease, border-color .15s ease;
-    }
-    .ot-submit-button:hover { background: #1d4ed8; border-color: #1d4ed8; }
-    .ot-submit-button:active { transform: translateY(1px); }
-
-    .debug-box{
-      margin-top: 10px;
-      border: 1px dashed #d7dbe0;
-      border-radius: 12px;
-      padding: 12px;
-      background: #fafafa;
+    textarea.vaultInput{
+      width:100%;
+      min-height: 60px;
+      resize: vertical;
+      padding: 8px 10px;
+      border: 1px solid #d7dbe0;
+      border-radius: 10px;
       font-size: 12px;
-      color: #374151;
-      white-space: pre-wrap;
-      word-break: break-word;
+      line-height: 1.3;
+      outline: none;
+      background: #fff;
     }
+    textarea.vaultInput:focus{
+      border-color: rgba(37,99,235,.6);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.10);
+    }
+    .vaultActions{
+      display:flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 8px; align-items:center;
+    }
+    .btnSm{
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btnSm:hover{ background:#f8fafc; }
+    .btnPrimary{
+      border-color: rgba(37,99,235,.30);
+      background: rgba(37,99,235,.10);
+      color:#1d4ed8;
+    }
+    .btnDanger{
+      border-color: rgba(239,68,68,.30);
+      background: rgba(239,68,68,.08);
+      color:#b91c1c;
+    }
+    .vaultHint{
+      margin: 8px 0 0;
+      font-size: 11.5px;
+      color:#64748b;
+      line-height: 1.35;
+    }
+    code.k { font-size: 11.5px; }
 
-    @media (max-width: 720px) {
-      .ot-grid { grid-template-columns: 1fr; }
-      .ot-form-consent { max-width: 520px; }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    @media (max-width: 520px){
+      .topbar{ flex-direction: column; align-items: flex-start; }
+      details.vaultTopRight{ margin-left: 0; }
+      .vaultPopover{ left: 0; right: auto; width: 92vw; }
     }
   </style>
 </head>
 
 <body>
   <main class="wrap">
-    <div class="back-bar">
-      <a href="./index.html" class="back-btn">← Volver al selector</a>
+    <div class="topbar">
+      <a href="./index.html" class="back-btn">← Back to selector</a>
+
+      <details class="vaultTopRight" id="vaultDetails">
+        <summary class="vaultChip" title="Token Vault (requestInformation JWT)">
+          <span>⚙️ Token Vault</span>
+          <span class="vaultChipRight">
+            <span class="dot" id="vaultDot"></span>
+            <span id="vaultText">Not loaded</span>
+          </span>
+        </summary>
+
+        <div class="vaultPopover">
+          <textarea class="vaultInput" id="jwtInput" placeholder="Paste the Collection Point JWT here (not committed)…"></textarea>
+
+          <div class="vaultActions">
+            <button class="btnSm btnPrimary" type="button" id="btnSaveJwt">Save</button>
+            <button class="btnSm btnDanger" type="button" id="btnClearJwt">Clear</button>
+          </div>
+
+          <p class="vaultHint">
+            Stored in <strong>sessionStorage</strong> (this tab only). Key:
+            <code class="k">sessionStorage["ucpm_requestInformation_jwt"]</code>
+          </p>
+        </div>
+      </details>
     </div>
 
-    <h1>External Web Form (HTML + SDK)</h1>
-    <p class="muted">Este formulario lo renderizas tú (HTML) y OneTrust gestiona el envío del receipt vía su SDK.</p>
+    <h1>External Web Form Integration (API)</h1>
 
     <section class="card">
-      <!-- ✅ IMPORTANTE: action no puede postear a GitHub Pages -->
-      <form class="ot-form-consent"
-            action="javascript:void(0)"
-            method="post"
-            data-ot-cp-id="299d23f4-cdd2-4fc2-9009-9ed75b7719d6-active"
-            id="otExternalForm">
+      <h2>CMS-like Form → Consent Receipt API</h2>
+      <p class="muted">
+        Sends a consent receipt to your Collection Point via <code>/request/v1/consentreceipts</code> using the Collection Point JWT as <code>requestInformation</code>.
+      </p>
 
-        <p class="ot-form-title">Lead capture</p>
-
-        <input type="hidden" id="confirmation" name="receiptId" value="" />
-
-        <div class="ot-grid">
-          <div class="ot-field">
-            <label for="inputEmail">Email</label>
-            <input type="email" id="inputEmail" name="Email" class="ot-form-control" placeholder="name@company.com" required>
-          </div>
-
-          <div class="ot-field">
-            <label for="Mobile">Mobile</label>
-            <input type="text" id="Mobile" name="Mobile" class="ot-form-control" placeholder="+34...">
-          </div>
-        </div>
-
-        <div class="ot-grid">
-          <div class="ot-field">
-            <label for="FirstName">First name</label>
-            <input type="text" id="FirstName" name="FirstName" class="ot-form-control" placeholder="Alvaro">
-          </div>
-
-          <div class="ot-field">
-            <label for="LastName">Last name</label>
-            <input type="text" id="LastName" name="LastName" class="ot-form-control" placeholder="Lopez">
-          </div>
-        </div>
-
-        <div class="ot-checkboxes">
-          <label>
-            <input value="Marketing Email Communications" type="checkbox" name="purposes">
-            Marketing Email Communications
+      <form id="externalForm">
+        <div class="row">
+          <label>Email (identifier)
+            <input id="email" type="email" required placeholder="example@otprivacy.com" />
           </label>
-
-          <label>
-            <input value="Profiling" type="checkbox" name="purposes">
-            Profiling
+          <label>Mobile
+            <input id="phone" type="tel" placeholder="+34..." />
           </label>
         </div>
 
-        <button id="trigger" class="ot-submit-button" type="submit">Submit</button>
+        <div class="row">
+          <label>First Name
+            <input id="firstName" type="text" placeholder="John" />
+          </label>
+          <label>Last Name
+            <input id="lastName" type="text" placeholder="Doe" />
+          </label>
+        </div>
 
-        <div id="debug" class="debug-box">Debug: listo. Abre Network y filtra por "consentreceipts".</div>
+        <div class="row">
+          <label class="checkbox">
+            <input id="marketing" type="checkbox" checked />
+            Marketing (Purpose #1)
+          </label>
+          <label class="checkbox">
+            <input id="profiling" type="checkbox" />
+            Profiling (Purpose #2)
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Submit (API)</button>
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff;">
+            <input id="isTest" type="checkbox" checked />
+            test=true
+          </label>
+        </div>
       </form>
 
-      <script
-        src="https://privacyportaltrial-cdn.onetrust.com/consent-receipt-scripts/scripts/otconsent-1.0.min.js"
-        type="text/javascript"
-        data-ot-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
-        charset="UTF-8"
-        id="consent-receipt-script"
-        data-ot-consent-register-event="document-load"
-      ></script>
+      <div class="log">
+        <strong>Submit log</strong>
+        <pre id="log"></pre>
+      </div>
     </section>
+
+    <p class="muted">
+      Tip: open DevTools → Network and filter <code>consentreceipts</code>. If it fails, check the API response in the log.
+    </p>
   </main>
 
   <script>
-    // ✅ Evita el POST nativo a GitHub Pages (causante del 405)
-    const f = document.getElementById("otExternalForm");
-    const debug = document.getElementById("debug");
+    (function () {
+      // =========================
+      // ✅ CONFIG
+      // =========================
+      const API_URL = "https://privacyportaltrial.onetrust.com/request/v1/consentreceipts";
 
-    f.addEventListener("submit", function(e){
-      e.preventDefault();
-      debug.textContent =
-        "Submit capturado (sin POST a GitHub). " +
-        "Si el SDK está integrado, deberías ver una llamada en Network → consentreceipts.\n\n" +
-        "Si NO ves llamada: revisa que data-ot-cp-id sea el '-active' correcto y que el tenant (data-ot-id) sea el tuyo.";
-    });
+      // Purpose IDs (your existing IDs)
+      const PURPOSE_MARKETING_ID = "d8aecf6d-3f4a-4354-b752-8a6663b5d83f";
+      const PURPOSE_PROFILING_ID = "eaddf865-9b70-445b-a36c-fdddc9de1697";
+      const CHECKED_TRANSACTION_TYPE = "CONFIRMED";
 
-    // (Opcional) Log de click
-    document.getElementById("trigger").addEventListener("click", () => {
-      debug.textContent = "Click en Submit. Revisa Network → consentreceipts…";
-    });
+      // JWT storage
+      const TOKEN_KEY = "ucpm_requestInformation_jwt";
+      const getJwt = () => {
+        const jwt = sessionStorage.getItem(TOKEN_KEY);
+        return (jwt && jwt.trim().length > 50) ? jwt.trim() : null;
+      };
+
+      // =========================
+      // UI: Token Vault
+      // =========================
+      const vaultDetails = document.getElementById("vaultDetails");
+      const vaultDot = document.getElementById("vaultDot");
+      const vaultText = document.getElementById("vaultText");
+      const jwtInput = document.getElementById("jwtInput");
+      const btnSaveJwt = document.getElementById("btnSaveJwt");
+      const btnClearJwt = document.getElementById("btnClearJwt");
+
+      function setVaultStatus(ok, msg) {
+        if (ok) vaultDot.classList.add("ok");
+        else vaultDot.classList.remove("ok");
+        vaultText.textContent = msg || (ok ? "Loaded" : "Not loaded");
+      }
+
+      function refreshVaultUI() {
+        const ok = !!getJwt();
+        setVaultStatus(ok, ok ? "Loaded" : "Not loaded");
+      }
+
+      btnSaveJwt.addEventListener("click", () => {
+        const val = (jwtInput.value || "").trim();
+        if (!val || val.length < 50) {
+          setVaultStatus(false, "Invalid JWT");
+          jwtInput.focus();
+          return;
+        }
+        sessionStorage.setItem(TOKEN_KEY, val);
+        jwtInput.value = "";
+        setVaultStatus(true, "Saved");
+        vaultDetails.open = false;
+      });
+
+      btnClearJwt.addEventListener("click", () => {
+        sessionStorage.removeItem(TOKEN_KEY);
+        jwtInput.value = "";
+        setVaultStatus(false, "Cleared");
+        vaultDetails.open = true;
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!vaultDetails.open) return;
+        if (!vaultDetails.contains(e.target)) vaultDetails.open = false;
+      });
+
+      refreshVaultUI();
+
+      // =========================
+      // Form submit → API
+      // =========================
+      const logEl = document.getElementById("log");
+      const form = document.getElementById("externalForm");
+
+      const emailEl = document.getElementById("email");
+      const phoneEl = document.getElementById("phone");
+      const firstNameEl = document.getElementById("firstName");
+      const lastNameEl = document.getElementById("lastName");
+      const marketingEl = document.getElementById("marketing");
+      const profilingEl = document.getElementById("profiling");
+      const isTestEl = document.getElementById("isTest");
+
+      function log(text, obj) {
+        const ts = new Date().toISOString();
+        const msg = obj ? text + "\n" + JSON.stringify(obj, null, 2) : text;
+        logEl.textContent = `[${ts}] ${msg}\n\n` + logEl.textContent;
+        console.log(text, obj || "");
+      }
+
+      function buildPurposes() {
+        const purposes = [];
+        if (marketingEl.checked) purposes.push({ Id: PURPOSE_MARKETING_ID, TransactionType: CHECKED_TRANSACTION_TYPE });
+        if (profilingEl.checked) purposes.push({ Id: PURPOSE_PROFILING_ID, TransactionType: CHECKED_TRANSACTION_TYPE });
+        return purposes;
+      }
+
+      function buildRequestBody() {
+        const jwt = getJwt();
+        if (!jwt) {
+          vaultDetails.open = true;
+          throw new Error("Missing JWT. Open Token Vault and click Save.");
+        }
+
+        const identifier = (emailEl.value || "").trim();
+        if (!identifier) throw new Error("Missing email (identifier).");
+
+        const body = {
+          identifier,
+          requestInformation: jwt,
+          purposes: buildPurposes(),
+          dsDataElements: {
+            Mobile: (phoneEl.value || "").trim(),
+            FirstName: (firstNameEl.value || "").trim(),
+            LastName: (lastNameEl.value || "").trim()
+          }
+        };
+
+        if (isTestEl.checked) body.test = true;
+        return body;
+      }
+
+      async function sendConsentReceipt(body) {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await res.json().catch(() => null)
+          : await res.text().catch(() => "");
+
+        if (!res.ok) {
+          const err = new Error(`API error: HTTP ${res.status}`);
+          err.details = data;
+          throw err;
+        }
+
+        return { status: res.status, data };
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        let body;
+        try {
+          body = buildRequestBody();
+        } catch (err) {
+          log("❌ Cannot submit", { message: err.message || String(err) });
+          return;
+        }
+
+        const safe = JSON.parse(JSON.stringify(body));
+        safe.requestInformation = "[REDACTED_JWT]";
+        log(`POST ${API_URL}`, safe);
+
+        try {
+          const result = await sendConsentReceipt(body);
+          log("✅ Success", result);
+        } catch (err) {
+          log("❌ Failed", { message: err.message || String(err), details: err.details || null });
+        }
+      });
+    })();
   </script>
 </body>
 </html>
