@@ -46,7 +46,7 @@
     .container{
       border:1px solid #eef0f3; border-radius:14px;
       padding:14px; min-height:280px; background:#fff;
-      overflow:hidden;
+      overflow: visible; /* ✅ important: avoid clipping injected iframe/content */
     }
 
     /* Keep whatever OT injects inside */
@@ -86,13 +86,9 @@
     }
   </style>
 
-  <!-- ✅ OneTrust Production website integration (as provided) -->
-  <script
-    defer
-    src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-    data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
-    worker="https://consent-api.onetrust.com"
-  ></script>
+  <!-- ✅ Keep stub in HEAD only if you also place a dedicated placeholder the stub can find.
+       ✅ For inline embeds, most reliable is placing the stub where you want it to render (inside container).
+       ✅ So: remove the stub from head. -->
 </head>
 
 <body>
@@ -111,7 +107,21 @@
         <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
       </div>
 
-      <div id="ucpm-embedded-form" class="container"></div>
+      <!-- ✅ Inline render target: place the OneTrust stub HERE so it injects content inside this container -->
+      <div id="ucpm-embedded-form" class="container">
+        <script
+          src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+          data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
+          worker="https://consent-api.onetrust.com"
+        ></script>
+      </div>
+
+      <!-- Optional: add the button trigger if you want on-demand open behavior (mainly for modal setups) -->
+      <!--
+      <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877" style="margin-top:12px;">
+        Open web form
+      </button>
+      -->
 
       <details class="guide">
         <summary>🛠 Troubleshooting (if it doesn’t render)</summary>
@@ -146,15 +156,17 @@
           "#94a3b8";
       }
 
-      setStatus("loading","Script loaded in <head>. Waiting for OneTrust to render…");
+      setStatus("loading","Waiting for OneTrust to render…");
 
-      // Render detection
+      // Render detection (give it a bit more time than 1.8s; GH Pages can be slower)
       setTimeout(() => {
+        const hasIframe = container.querySelector("iframe");
         const hasContent = container.children.length > 0 || (container.textContent || "").trim().length > 0;
-        if (hasContent) {
+
+        if (hasIframe || hasContent) {
           setStatus("ok","Form rendered.");
         } else {
-          setStatus("error","Nothing rendered. Most common causes: origin not allowed on CP, blocker, or wrong tenant domain.");
+          setStatus("error","Nothing rendered. If Network is 200, the usual cause is the stub injected outside the target or the CP is configured differently (modal vs inline).");
         }
 
         console.log("OT embedded globals:", {
@@ -163,7 +175,7 @@
           Onetrust: window.Onetrust,
           __OT__: window.__OT__
         });
-      }, 1800);
+      }, 3000);
     })();
   </script>
 </body>
