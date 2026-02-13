@@ -1,223 +1,358 @@
+<!-- api.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UCPM – Custom Form (API)</title>
+  <title>UCPM API – Custom Form</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: #f4f6f8;
-      color: #1f2937;
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7f9; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+    .card { background: #fff; border-radius: 12px; padding: 18px; margin: 18px 0; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    label { display: grid; gap: 6px; font-size: 14px; }
+    input { padding: 10px 12px; border: 1px solid #d7dbe0; border-radius: 10px; font-size: 14px; }
+    .checkbox { display: flex; align-items: center; gap: 8px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #d7dbe0; background: #fff; cursor: pointer; }
+    button:hover { background: #f2f4f7; }
+    .muted { color: #6b7280; font-size: 13px; }
+    .log { margin-top: 14px; border: 1px dashed #d7dbe0; border-radius: 12px; padding: 12px; background: #fafafa; }
+    .log pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; }
+
+    /* back bar + token vault */
+    .back-bar{
+      margin-bottom: 16px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px; text-decoration: none;
+      font-size: 13px; font-weight: 600; color: #1d4ed8;
+      background: rgba(37,99,235,.08); border: 1px solid rgba(37,99,235,.25);
+      white-space: nowrap;
+    }
+    details.vaultTopRight{ position: relative; margin-left: auto; }
+    summary.vaultChip{
+      list-style: none; cursor: pointer;
+      display:inline-flex; align-items:center; gap: 10px;
+      padding: 8px 10px; border-radius: 999px;
+      border: 1px solid #e5e7eb; background: rgba(255,255,255,.9);
+      font-size: 12.5px; font-weight: 900; color:#0f172a;
+      user-select:none; white-space: nowrap;
+    }
+    summary.vaultChip::-webkit-details-marker{ display:none; }
+    .vaultChipRight{
+      display:flex; align-items:center; gap: 8px;
+      font-weight: 800; font-size: 12px; color:#64748b;
+      padding: 5px 8px; border: 1px solid #e5e7eb;
+      border-radius: 999px; background: rgba(255,255,255,.8);
+      white-space: nowrap;
+    }
+    .dot { width:8px; height:8px; border-radius: 999px; background:#ef4444; }
+    .dot.ok { background:#22c55e; }
+    .vaultPopover{
+      position: absolute; right: 0; top: calc(100% + 10px);
+      width: min(520px, 86vw);
+      border: 1px solid #eef0f3; border-radius: 12px;
+      background: #fff; box-shadow: 0 18px 50px rgba(2, 6, 23, .14);
+      padding: 10px 12px 12px; z-index: 50;
+    }
+    textarea.vaultInput{
+      width:100%; min-height: 60px; resize: vertical;
+      padding: 8px 10px; border: 1px solid #d7dbe0; border-radius: 10px;
+      font-size: 12px; line-height: 1.3; outline: none; background: #fff;
+    }
+    .vaultActions{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items:center; }
+    .btnSm{
+      padding: 8px 10px; border-radius: 10px;
+      border: 1px solid #e5e7eb; background: #fff;
+      font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap;
+    }
+    .btnSm:hover{ background:#f8fafc; }
+    .btnPrimary{ border-color: rgba(37,99,235,.30); background: rgba(37,99,235,.10); color:#1d4ed8; }
+    .btnDanger{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.08); color:#b91c1c; }
+    .vaultHint{ margin: 8px 0 0; font-size: 11.5px; color:#64748b; line-height: 1.35; }
+    code.k { font-size: 11.5px; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px;
+      background: #fff; font-size: 12px; color: #374151;
     }
 
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    @media (max-width: 520px){
+      .back-bar{ flex-direction: column; align-items: flex-start; }
+      details.vaultTopRight{ margin-left: 0; }
+      .vaultPopover{ left: 0; right: auto; width: 92vw; }
     }
-
-    h1 {
-      font-size: 22px;
-      margin-bottom: 20px;
-      color: #003b5c;
-    }
-
-    .card {
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      padding: 20px;
-      border-radius: 6px;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-    }
-
-    .checkbox {
-      margin-bottom: 10px;
-      font-size: 13px;
-    }
-
-    button {
-      padding: 10px 14px;
-      border-radius: 4px;
-      border: 1px solid #003b5c;
-      background: #003b5c;
-      color: white;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    button:hover {
-      background: #002b45;
-    }
-
-    .log {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px dashed #d1d5db;
-      background: #fafafa;
-      font-size: 12px;
-      white-space: pre-wrap;
-    }
-
-    .back {
-      display: inline-block;
-      margin-bottom: 20px;
-      text-decoration: none;
-      font-size: 13px;
-      color: #003b5c;
-    }
-
-    @media (max-width: 768px) {
-      .row {
-        grid-template-columns: 1fr;
-      }
-    }
-
   </style>
 </head>
 
 <body>
+  <main class="wrap">
+    <div class="back-bar">
+      <a href="./index.html" class="back-btn">← Back to selector</a>
 
-  <div class="container">
+      <!-- Token Vault (kept) -->
+      <details class="vaultTopRight" id="vaultDetails">
+        <summary class="vaultChip" title="Token Vault (requestInformation JWT)">
+          <span>⚙️ Token Vault</span>
+          <span class="vaultChipRight" id="vaultStatus">
+            <span class="dot" id="vaultDot"></span>
+            <span id="vaultText">Not loaded</span>
+          </span>
+        </summary>
 
-    <a class="back" href="./index.html">← Back to selector</a>
+        <div class="vaultPopover">
+          <textarea class="vaultInput" id="jwtInput" placeholder="Paste JWT here (not committed)…"></textarea>
+
+          <div class="vaultActions">
+            <button class="btnSm btnPrimary" type="button" id="btnSaveJwt">Save</button>
+            <button class="btnSm btnDanger" type="button" id="btnClearJwt">Clear</button>
+          </div>
+
+          <p class="vaultHint">
+            Stored in <strong>sessionStorage</strong> (this tab only). Key:
+            <code class="k">sessionStorage["ucpm_requestInformation_jwt"]</code>
+          </p>
+        </div>
+      </details>
+    </div>
 
     <h1>Custom Form → Consent Receipt API</h1>
 
-    <div class="card">
+    <section class="card">
+      <p class="muted">
+        Sends a receipt to a Collection Point via <code>/request/v1/consentreceipts</code> using the CP JWT as <code>requestInformation</code>.
+      </p>
 
-      <form id="apiForm">
+      <form id="cmsForm">
+        <div class="row">
+          <label>Email (identifier)
+            <input id="email" type="email" required placeholder="example@otprivacy.com" />
+          </label>
+          <label>Mobile
+            <input id="phone" type="tel" placeholder="+34..." />
+          </label>
+        </div>
 
         <div class="row">
-          <div>
-            <label>Email (Identifier)</label>
-            <input type="email" id="email" required />
-          </div>
-
-          <div>
-            <label>Mobile</label>
-            <input type="tel" id="mobile" />
-          </div>
+          <label>First Name
+            <input id="firstName" type="text" />
+          </label>
+          <label>Last Name
+            <input id="lastName" type="text" />
+          </label>
         </div>
 
         <div class="row">
-          <div>
-            <label>First Name</label>
-            <input type="text" id="firstName" />
-          </div>
-
-          <div>
-            <label>Last Name</label>
-            <input type="text" id="lastName" />
-          </div>
+          <label class="checkbox">
+            <input id="marketing" type="checkbox" checked /> Marketing (Purpose #1)
+          </label>
+          <label class="checkbox">
+            <input id="profiling" type="checkbox" /> Profiling (Purpose #2)
+          </label>
         </div>
 
-        <div class="checkbox">
-          <input type="checkbox" id="marketing" checked />
-          Marketing Communications
+        <div class="actions">
+          <button type="submit">Submit (API)</button>
+
+          <label class="pill">
+            <input id="isTest" type="checkbox" checked />
+            test=true
+          </label>
         </div>
-
-        <div class="checkbox">
-          <input type="checkbox" id="profiling" />
-          Profiling
-        </div>
-
-        <button type="submit">Submit Consent (API)</button>
-
       </form>
 
-      <div class="log" id="log"></div>
-
-    </div>
-  </div>
+      <div class="log">
+        <strong>Submit log</strong>
+        <pre id="log"></pre>
+      </div>
+    </section>
+  </main>
 
 <script>
+(function () {
+  // =========================
+  // CONFIG
+  // =========================
+  const API_URL = "https://privacyportaltrial.onetrust.com/request/v1/consentreceipts";
+  const TOKEN_KEY = "ucpm_requestInformation_jwt";
 
-const API_URL = "https://privacyportaltrial.onetrust.com/request/v1/consentreceipts";
-const TOKEN_KEY = "ucpm_requestInformation_jwt";
+  // Purpose IDs (keep yours)
+  const PURPOSE_MARKETING_ID = "d8aecf6d-3f4a-4354-b752-8a6663b5d83f";
+  const PURPOSE_PROFILING_ID = "eaddf865-9b70-445b-a36c-fdddc9de1697";
 
-function getJwt() {
-  const jwt = sessionStorage.getItem(TOKEN_KEY);
-  return jwt ? jwt.trim() : null;
-}
+  const CHECKED_TRANSACTION_TYPE = "CONFIRMED";
 
-document.getElementById("apiForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
-
-  const jwt = getJwt();
-  if (!jwt) {
-    alert("No JWT found in sessionStorage.");
-    return;
+  function getJwt() {
+    const jwt = sessionStorage.getItem(TOKEN_KEY);
+    return (jwt && jwt.trim().length > 50) ? jwt.trim() : null;
   }
 
-  const body = {
-    identifier: document.getElementById("email").value.trim(),
-    requestInformation: jwt,
-    purposes: [],
-    dsDataElements: {
-      Mobile: document.getElementById("mobile").value.trim(),
-      FirstName: document.getElementById("firstName").value.trim(),
-      LastName: document.getElementById("lastName").value.trim()
+  // =========================
+  // Token Vault UI
+  // =========================
+  const jwtInput = document.getElementById("jwtInput");
+  const btnSaveJwt = document.getElementById("btnSaveJwt");
+  const btnClearJwt = document.getElementById("btnClearJwt");
+  const vaultDot = document.getElementById("vaultDot");
+  const vaultText = document.getElementById("vaultText");
+  const vaultDetails = document.getElementById("vaultDetails");
+
+  function setVaultStatus(ok, msg) {
+    if (ok) {
+      vaultDot.classList.add("ok");
+      vaultText.textContent = msg || "Loaded";
+    } else {
+      vaultDot.classList.remove("ok");
+      vaultText.textContent = msg || "Not loaded";
     }
-  };
-
-  if (document.getElementById("marketing").checked) {
-    body.purposes.push({
-      Id: "d8aecf6d-3f4a-4354-b752-8a6663b5d83f",
-      TransactionType: "CONFIRMED"
-    });
   }
 
-  if (document.getElementById("profiling").checked) {
-    body.purposes.push({
-      Id: "eaddf865-9b70-445b-a36c-fdddc9de1697",
-      TransactionType: "CONFIRMED"
-    });
+  function refreshVaultUI() {
+    setVaultStatus(!!getJwt(), getJwt() ? "Loaded" : "Not loaded");
   }
 
-  const log = document.getElementById("log");
-  log.innerText = "Submitting...\n";
+  btnSaveJwt.addEventListener("click", () => {
+    const val = (jwtInput.value || "").trim();
+    if (!val || val.length < 50) {
+      setVaultStatus(false, "Invalid JWT");
+      jwtInput.focus();
+      return;
+    }
+    sessionStorage.setItem(TOKEN_KEY, val);
+    jwtInput.value = "";
+    setVaultStatus(true, "Saved");
+    vaultDetails.open = false;
+  });
 
-  try {
+  btnClearJwt.addEventListener("click", () => {
+    sessionStorage.removeItem(TOKEN_KEY);
+    jwtInput.value = "";
+    setVaultStatus(false, "Cleared");
+    vaultDetails.open = true;
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!vaultDetails.open) return;
+    if (!vaultDetails.contains(e.target)) vaultDetails.open = false;
+  });
+
+  refreshVaultUI();
+
+  // =========================
+  // Form + API
+  // =========================
+  const logEl = document.getElementById("log");
+  const form = document.getElementById("cmsForm");
+
+  const emailEl = document.getElementById("email");
+  const phoneEl = document.getElementById("phone");
+  const firstNameEl = document.getElementById("firstName");
+  const lastNameEl = document.getElementById("lastName");
+  const marketingEl = document.getElementById("marketing");
+  const profilingEl = document.getElementById("profiling");
+  const isTestEl = document.getElementById("isTest");
+
+  let submitCounter = 0;
+
+  function log(text, obj) {
+    const ts = new Date().toISOString();
+    const msg = obj ? text + "\n" + JSON.stringify(obj, null, 2) : text;
+    logEl.textContent = "[" + ts + "] " + msg + "\n\n" + logEl.textContent;
+    console.log(text, obj || "");
+  }
+
+  function buildPurposes() {
+    const purposes = [];
+    if (marketingEl.checked) purposes.push({ Id: PURPOSE_MARKETING_ID, TransactionType: CHECKED_TRANSACTION_TYPE });
+    if (profilingEl.checked) purposes.push({ Id: PURPOSE_PROFILING_ID, TransactionType: CHECKED_TRANSACTION_TYPE });
+    return purposes;
+  }
+
+  function buildRequestBody() {
+    const identifier = (emailEl.value || "").trim();
+    const jwt = getJwt();
+    if (!jwt) {
+      vaultDetails.open = true;
+      throw new Error("JWT not loaded. Open Token Vault and click Save.");
+    }
+
+    const body = {
+      identifier,
+      requestInformation: jwt,
+      purposes: buildPurposes(),
+      dsDataElements: {
+        Mobile: (phoneEl.value || "").trim(),
+        FirstName: (firstNameEl.value || "").trim(),
+        LastName: (lastNameEl.value || "").trim()
+      }
+    };
+
+    if (isTestEl.checked) body.test = true;
+    return body;
+  }
+
+  async function sendConsentReceipt(requestBody) {
+    if (!requestBody.identifier) throw new Error("Missing identifier (email).");
+
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(requestBody)
     });
 
-    const data = await res.json();
-    log.innerText = "Success:\n" + JSON.stringify(data, null, 2);
+    const contentType = res.headers.get("content-type") || "";
+    let data = null;
 
-  } catch (err) {
-    log.innerText = "Error:\n" + err;
+    if (contentType.includes("application/json")) data = await res.json().catch(() => null);
+    else {
+      const text = await res.text().catch(() => "");
+      data = text ? { raw: text } : null;
+    }
+
+    if (!res.ok) {
+      const err = new Error("API error: HTTP " + res.status);
+      err.details = data;
+      throw err;
+    }
+
+    return { status: res.status, data };
   }
 
-});
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    submitCounter++;
 
+    let requestBody;
+    try {
+      requestBody = buildRequestBody();
+    } catch (err) {
+      log("❌ Missing JWT", { message: err.message || String(err) });
+      return;
+    }
+
+    const safeLogBody = JSON.parse(JSON.stringify(requestBody));
+    if (safeLogBody.requestInformation) safeLogBody.requestInformation = "[REDACTED_JWT]";
+
+    log("SUBMIT #" + submitCounter + " → POST " + API_URL, safeLogBody);
+
+    try {
+      const result = await sendConsentReceipt(requestBody);
+      log("✅ API result (ok)", result);
+    } catch (err) {
+      log("❌ API error", { message: err.message || String(err), details: err.details || null });
+    }
+  });
+})();
 </script>
-
 </body>
 </html>
