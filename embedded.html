@@ -9,69 +9,44 @@
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin:0; background:#f6f7f9; color:#0f172a; }
     .wrap { max-width:980px; margin:0 auto; padding:24px; }
-
-    .card {
-      background:#fff; border-radius:14px; padding:18px; margin:14px 0;
-      box-shadow:0 2px 10px rgba(0,0,0,.06); border:1px solid #eef0f3;
-    }
-
+    .card { background:#fff; border-radius:14px; padding:18px; margin:14px 0;
+      box-shadow:0 2px 10px rgba(0,0,0,.06); border:1px solid #eef0f3; }
     .embedStatus{
       display:flex; align-items:center; gap:10px;
       padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px;
       background:#fafafa; margin: 12px 0 12px; font-size:12.5px;
     }
-
     .badge{
-      margin-left:auto;
-      display:inline-flex; align-items:center; gap:8px;
-      padding:4px 10px;
-      border-radius:999px; border:1px solid #e5e7eb; background:#fff;
-      font-weight:900;
+      margin-left:auto; display:inline-flex; align-items:center; gap:8px;
+      padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#fff; font-weight:900;
     }
-
     .dot{ width:8px; height:8px; border-radius:999px; background:#94a3b8; }
-
     .container{
-      border:1px solid #eef0f3;
-      border-radius:14px;
-      padding:14px;
-      min-height:400px;
-      background:#fff;
-      overflow:visible;
+      border:1px solid #eef0f3; border-radius:14px;
+      padding:14px; min-height:520px; background:#fff; overflow:visible;
     }
-
-    #ucpm-embedded-form iframe {
-      width: 100% !important;
-      border: 0 !important;
-      min-height: 600px;
-    }
+    #ucpm-embedded-form iframe { width:100% !important; border:0 !important; min-height: 600px; display:block; }
   </style>
 
-  <!-- OneTrust Stub -->
+  <!-- ✅ OneTrust Stub: FIXED worker -->
   <script
     defer
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
     data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
-    worker="https://consent-api.onetrust.com"
+    worker="https://privacyportaltrial.onetrust.com"
   ></script>
 </head>
 
 <body>
   <main class="wrap">
-
     <div class="card">
       <div class="embedStatus">
         <strong>Status:</strong>
-        <span id="msg">Waiting for OneTrust SDK...</span>
-        <span class="badge">
-          <span class="dot" id="dot"></span>
-          <span id="state">LOADING</span>
-        </span>
+        <span id="msg">Loading OneTrust SDK…</span>
+        <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
       </div>
 
-      <!-- INLINE RENDER TARGET -->
       <div id="ucpm-embedded-form" class="container"></div>
-
     </div>
   </main>
 
@@ -93,48 +68,46 @@
           "#94a3b8";
       }
 
-      setStatus("loading","Loading OneTrust SDK...");
+      setStatus("loading","Waiting for SDK…");
 
       let attempts = 0;
-      const waitForSDK = setInterval(() => {
+      const t = setInterval(() => {
         attempts++;
 
-        if (window.OneTrust &&
-            window.OneTrust.webform &&
-            typeof window.OneTrust.webform.InstallCP === "function") {
+        if (window.OneTrust && window.OneTrust.webform && typeof window.OneTrust.webform.InstallCP === "function") {
+          clearInterval(t);
 
-          clearInterval(waitForSDK);
-
-          setStatus("loading","Installing Collection Point...");
-
+          setStatus("loading","Calling InstallCP (manual)…");
           window.OneTrust.webform.InstallCP(CP_ID);
 
-          const detectRender = setInterval(() => {
-            const iframe = container.querySelector("iframe");
+          let tries = 0;
+          const t2 = setInterval(() => {
+            tries++;
+            const iframe = container.querySelector("iframe") || document.querySelector("iframe");
             if (iframe) {
-              clearInterval(detectRender);
-              setStatus("ok","Form rendered successfully.");
+              // ensure it’s inside container
+              if (!container.contains(iframe)) {
+                container.innerHTML = "";
+                container.appendChild(iframe);
+              }
+              clearInterval(t2);
+              setStatus("ok","Form rendered (iframe detected).");
+            }
+            if (tries > 30) {
+              clearInterval(t2);
+              setStatus("error","SDK ready but no iframe detected. Check CP config (type, publish) and verify Network calls are not 404.");
             }
           }, 300);
 
-          setTimeout(() => {
-            const iframe = container.querySelector("iframe");
-            if (!iframe) {
-              setStatus("error","CP installed but no iframe detected. Check: CP is Published, Manual mode enabled, domain allowed.");
-            }
-          }, 7000);
-
+          return;
         }
 
-        if (attempts > 25) {
-          clearInterval(waitForSDK);
-          setStatus("error","OneTrust SDK not detected.");
+        if (attempts > 30) {
+          clearInterval(t);
+          setStatus("error","SDK not ready (InstallCP not found).");
         }
-
-      }, 300);
-
+      }, 250);
     })();
   </script>
-
 </body>
 </html>
