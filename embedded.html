@@ -9,26 +9,38 @@
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin:0; background:#f6f7f9; color:#0f172a; }
     .wrap { max-width:980px; margin:0 auto; padding:24px; }
+
     .card { background:#fff; border-radius:14px; padding:18px; margin:14px 0;
       box-shadow:0 2px 10px rgba(0,0,0,.06); border:1px solid #eef0f3; }
+
     .embedStatus{
       display:flex; align-items:center; gap:10px;
       padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px;
-      background:#fafafa; margin: 12px 0 12px; font-size:12.5px;
+      background:#fafafa; margin: 12px 0 12px; font-size:12.5px; color:#334155;
     }
     .badge{
       margin-left:auto; display:inline-flex; align-items:center; gap:8px;
-      padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#fff; font-weight:900;
+      padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#fff;
+      font-weight:900; white-space:nowrap;
     }
     .dot{ width:8px; height:8px; border-radius:999px; background:#94a3b8; }
+
     .container{
       border:1px solid #eef0f3; border-radius:14px;
       padding:14px; min-height:520px; background:#fff; overflow:visible;
     }
-    #ucpm-embedded-form iframe { width:100% !important; border:0 !important; min-height: 600px; display:block; }
+
+    /* If it renders in an iframe, make it full width */
+    #ucpm-embedded-form iframe { width:100% !important; border:0 !important; min-height:600px; display:block; }
+
+    .ot-open-webform{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:12px; border:1px solid #e5e7eb;
+      background:#fff; font-weight:800; cursor:pointer;
+    }
   </style>
 
-  <!-- ✅ OneTrust Stub: FIXED worker -->
+  <!-- ✅ OneTrust stub (use tenant domain as worker) -->
   <script
     defer
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
@@ -42,18 +54,24 @@
     <div class="card">
       <div class="embedStatus">
         <strong>Status:</strong>
-        <span id="msg">Loading OneTrust SDK…</span>
+        <span id="msg">Loading OneTrust…</span>
         <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
       </div>
 
-      <div id="ucpm-embedded-form" class="container"></div>
+      <div id="ucpm-embedded-form" class="container">
+        <!-- ✅ Trigger button that OneTrust provides -->
+        <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877">
+          Open web form
+        </button>
+      </div>
     </div>
   </main>
 
   <script>
-    (function () {
+    (function(){
       const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
       const container = document.getElementById("ucpm-embedded-form");
+      const btn = document.getElementById("ot-0412853a-91ac-4d1b-ae16-0555b88fb877");
       const msg = document.getElementById("msg");
       const dot = document.getElementById("dot");
       const state = document.getElementById("state");
@@ -68,45 +86,66 @@
           "#94a3b8";
       }
 
-      setStatus("loading","Waiting for SDK…");
+      function rendered(){
+        const iframe = container.querySelector("iframe") || document.querySelector("iframe");
+        if (iframe) {
+          if (!container.contains(iframe)) {
+            container.innerHTML = "";
+            container.appendChild(iframe);
+          }
+          return true;
+        }
+        // Sometimes it injects HTML instead of iframe
+        const hasNonButtonContent = Array.from(container.children).some(el => el !== btn);
+        return hasNonButtonContent;
+      }
 
-      let attempts = 0;
-      const t = setInterval(() => {
-        attempts++;
+      setStatus("loading","Waiting for OneTrust SDK…");
 
-        if (window.OneTrust && window.OneTrust.webform && typeof window.OneTrust.webform.InstallCP === "function") {
-          clearInterval(t);
+      // Wait for OtSdk command queue to exist
+      let tries = 0;
+      const wait = setInterval(() => {
+        tries++;
 
-          setStatus("loading","Calling InstallCP (manual)…");
-          window.OneTrust.webform.InstallCP(CP_ID);
+        // OtSdk is used for the "consent" InstallCP flow
+        const hasOtSdk = (typeof window.OtSdk === "function");
 
-          let tries = 0;
-          const t2 = setInterval(() => {
-            tries++;
-            const iframe = container.querySelector("iframe") || document.querySelector("iframe");
-            if (iframe) {
-              // ensure it’s inside container
-              if (!container.contains(iframe)) {
-                container.innerHTML = "";
-                container.appendChild(iframe);
-              }
-              clearInterval(t2);
-              setStatus("ok","Form rendered (iframe detected).");
+        if (hasOtSdk) {
+          clearInterval(wait);
+
+          setStatus("loading","Installing Collection Point (OtSdk InstallCP)…");
+
+          // Ensure it's manual/external install
+          window.OtSdk("consent", "RegisterEvent", "external");
+          window.OtSdk("consent", "InstallCP", CP_ID, function(ok){
+            console.log("InstallCP callback:", ok);
+          });
+
+          // Try to open/render the form
+          let openTries = 0;
+          const opener = setInterval(() => {
+            openTries++;
+            btn && btn.click();
+
+            if (rendered()) {
+              clearInterval(opener);
+              setStatus("ok","Form rendered.");
             }
-            if (tries > 30) {
-              clearInterval(t2);
-              setStatus("error","SDK ready but no iframe detected. Check CP config (type, publish) and verify Network calls are not 404.");
+
+            if (openTries >= 20) {
+              clearInterval(opener);
+              setStatus("error","Installed but nothing rendered. Check CP type is Embedded Web Form CP and the trigger id belongs to this CP.");
             }
-          }, 300);
+          }, 500);
 
           return;
         }
 
-        if (attempts > 30) {
-          clearInterval(t);
-          setStatus("error","SDK not ready (InstallCP not found).");
+        if (tries >= 30) {
+          clearInterval(wait);
+          setStatus("error","OtSdk not detected. Stub loaded but SDK queue not available.");
         }
-      }, 250);
+      }, 300);
     })();
   </script>
 </body>
