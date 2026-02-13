@@ -20,9 +20,7 @@
       border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px;
       background: #fff; display:flex; flex-direction:column; gap: 10px;
       transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-      cursor:pointer;
-      text-decoration:none;
-      color: inherit;
+      cursor:pointer; text-decoration:none; color: inherit;
     }
     .tile:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(2,6,23,.08); border-color: rgba(37,99,235,.30); }
     .tile .head { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
@@ -75,20 +73,28 @@
             <strong>1) Custom Form → API (Consent Receipt)</strong>
             <span class="pill">API</span>
           </div>
-          <p>Use your own HTML form and send data to OneTrust via the Consent Receipt API.</p>
+          <p>Use your own HTML form and send consent data to OneTrust via the Consent Receipt API.</p>
+        </a>
+
+        <a class="tile" href="./external.html">
+          <div class="head">
+            <strong>2) External Web Form (HTML + SDK)</strong>
+            <span class="pill">HTML + SDK</span>
+          </div>
+          <p>Use your own HTML form, with OneTrust’s SDK handling the consent receipt submission.</p>
         </a>
 
         <a class="tile" href="./embedded.html">
           <div class="head">
-            <strong>2) Embedded Form (OneTrust)</strong>
-            <span class="pill">HTML + SDK</span>
+            <strong>3) Embedded Form (OneTrust)</strong>
+            <span class="pill">Embedded</span>
           </div>
           <p>Render the standard OneTrust embedded form inside your page.</p>
         </a>
 
         <a class="tile" href="./modal.html">
           <div class="head">
-            <strong>3) Modal Popup (CTA → form)</strong>
+            <strong>4) Modal Popup (CTA → form)</strong>
             <span class="pill">UI Pattern</span>
           </div>
           <p>Click a CTA and open a modal window to collect consent + preferences.</p>
@@ -96,7 +102,7 @@
 
         <a class="tile" href="./landing.html">
           <div class="head">
-            <strong>4) Landing Page CTA (demo site)</strong>
+            <strong>5) Landing Page CTA (demo site)</strong>
             <span class="pill">Marketing</span>
           </div>
           <p>Bank-style landing page with a call-to-action to start the flow.</p>
@@ -105,22 +111,31 @@
       </div>
 
       <details class="guide">
-        <summary>📘 When to use API vs HTML + SDK</summary>
+        <summary>📘 When to use API vs HTML + SDK vs Embedded</summary>
         <div class="guideBody">
-          <div><strong>Use <span class="k">API</span></strong> when you already have a form/backend and you want full control over:</div>
+          <div><strong>Use <span class="k">API</span></strong> when you need maximum control and/or server-side processing:</div>
           <ul>
-            <li>Server-side validation, data enrichment, CRM/CDP writes</li>
-            <li>Custom UX and fields beyond the standard embedded form</li>
-            <li>Batch or multi-step flows (lead → verify → consent)</li>
+            <li>Server-side validation, enrichment, CRM/CDP writes</li>
+            <li>Custom UX + custom fields, multi-step journeys</li>
+            <li>When the browser should not call OneTrust directly</li>
           </ul>
-          <div style="margin-top:10px;"><strong>Use <span class="k">HTML + SDK (Embedded)</span></strong> when you want speed and consistency:</div>
+
+          <div style="margin-top:10px;"><strong>Use <span class="k">HTML + SDK (External Web Form)</span></strong> when you want a custom form but faster than building full API logic:</div>
           <ul>
-            <li>Fast deployment with the standard OneTrust form UX</li>
+            <li>You keep your own form UI, but OneTrust SDK submits the receipt</li>
+            <li>Good for quick pilots where you still want a custom experience</li>
+            <li>Less backend work than API, more flexibility than Embedded</li>
+          </ul>
+
+          <div style="margin-top:10px;"><strong>Use <span class="k">Embedded</span></strong> when you want speed and standard UX:</div>
+          <ul>
+            <li>Fast deployment with OneTrust-provided form UI</li>
             <li>Lower implementation effort</li>
-            <li>Good for demos / quick pilots</li>
+            <li>Great for demos / simple flows</li>
           </ul>
+
           <div class="muted" style="margin-top:10px;">
-            Tip: In real projects, many customers start with Embedded for speed, then move to API for advanced journeys.
+            Tip: Many customers start with Embedded (speed), move to External (custom UI), and later mature to API (advanced journeys + server-side governance).
           </div>
         </div>
       </details>
