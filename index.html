@@ -16,6 +16,7 @@
 
     .card { background:#fff; border-radius: 14px; padding: 18px; margin: 14px 0; box-shadow: 0 2px 10px rgba(0,0,0,.06); border: 1px solid #eef0f3; }
     .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
     .tile {
       border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px;
       background: #fff; display:flex; flex-direction:column; gap: 10px;
@@ -53,16 +54,82 @@
     .guideBody li { margin: 8px 0; }
     .muted { color:#64748b; }
 
+    /* Password Gate */
+    .gateWrap { max-width: 520px; margin: 10vh auto 0; }
+    .gateTitle { margin:0 0 6px; font-size: 18px; }
+    .gateHint { margin:0 0 14px; color:#64748b; font-size: 13px; line-height: 1.35; }
+    .gateRow { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+    .input {
+      flex: 1 1 240px;
+      padding: 10px 12px;
+      border: 1px solid #d7dbe0;
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
+    }
+    .input:focus { border-color: rgba(37,99,235,.45); box-shadow: 0 0 0 3px rgba(37,99,235,.10); }
+    .btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #d7dbe0;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .btn:hover { background:#f2f4f7; }
+    .btnPrimary { border-color: rgba(37,99,235,.30); background: rgba(37,99,235,.10); color:#1d4ed8; }
+    .err { margin-top: 10px; color:#b91c1c; font-size: 13px; display:none; }
+
+    .lockBar {
+      display:flex; justify-content:flex-end; gap:10px; align-items:center;
+      margin-top: 6px;
+    }
+    .lockNote { color:#64748b; font-size: 12px; }
+
     @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <main class="wrap">
+
+  <!-- PASSWORD GATE -->
+  <main class="wrap" id="gateView" style="display:none;">
+    <div class="gateWrap">
+      <div class="card">
+        <div class="brand" style="margin-bottom:8px;">
+          <h1>UCPM Web Demo</h1>
+          <p>Enter the password to access the selector.</p>
+        </div>
+
+        <h2 class="gateTitle">Password required</h2>
+        <p class="gateHint">
+          This is a lightweight gate for demo pages (stored in <span class="k">sessionStorage</span> for this tab).
+        </p>
+
+        <div class="gateRow">
+          <input class="input" id="pw" type="password" placeholder="Password…" autocomplete="off" />
+          <button class="btn btnPrimary" id="btnEnter" type="button">Enter</button>
+        </div>
+
+        <div class="err" id="pwErr">Incorrect password.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SELECTOR -->
+  <main class="wrap" id="appView" style="display:none;">
     <div class="top">
       <div class="brand">
         <h1>UCPM Web Demo</h1>
         <p>Pick a scenario to simulate consent capture + preference flows.</p>
       </div>
+    </div>
+
+    <div class="lockBar">
+      <span class="lockNote">Unlocked for this tab</span>
+      <button class="btn" id="btnLock" type="button">Lock</button>
     </div>
 
     <section class="card">
@@ -141,5 +208,62 @@
       </details>
     </section>
   </main>
+
+  <script>
+    (function () {
+      // Change this to your demo password
+      const DEMO_PASSWORD = "demo123";
+      const KEY = "ucpm_demo_unlocked";
+
+      const gateView = document.getElementById("gateView");
+      const appView = document.getElementById("appView");
+      const pw = document.getElementById("pw");
+      const btnEnter = document.getElementById("btnEnter");
+      const pwErr = document.getElementById("pwErr");
+      const btnLock = document.getElementById("btnLock");
+
+      function isUnlocked() {
+        return sessionStorage.getItem(KEY) === "true";
+      }
+
+      function showGate() {
+        gateView.style.display = "block";
+        appView.style.display = "none";
+        pwErr.style.display = "none";
+        pw.value = "";
+        setTimeout(() => pw.focus(), 50);
+      }
+
+      function showApp() {
+        gateView.style.display = "none";
+        appView.style.display = "block";
+      }
+
+      function unlock() {
+        const val = (pw.value || "").trim();
+        if (!val || val !== DEMO_PASSWORD) {
+          pwErr.style.display = "block";
+          return;
+        }
+        sessionStorage.setItem(KEY, "true");
+        showApp();
+      }
+
+      function lock() {
+        sessionStorage.removeItem(KEY);
+        showGate();
+      }
+
+      // Init
+      if (isUnlocked()) showApp();
+      else showGate();
+
+      btnEnter.addEventListener("click", unlock);
+      pw.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") unlock();
+      });
+      if (btnLock) btnLock.addEventListener("click", lock);
+    })();
+  </script>
 </body>
 </html>
