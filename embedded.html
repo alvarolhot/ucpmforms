@@ -1,46 +1,61 @@
+<!-- UCPM DEMO VERSION 3.0 – 20:15 -->
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UCPM – Embedded Form</title>
+  <title>UCPM DEMO VERSION 3.0</title>
 
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin:0; background:#f6f7f9; color:#0f172a; }
+    body { margin:0; background:#f6f7f9; font-family:system-ui; }
     .wrap { max-width:980px; margin:0 auto; padding:24px; }
 
-    .card { background:#fff; border-radius:14px; padding:18px; margin:14px 0;
-      box-shadow:0 2px 10px rgba(0,0,0,.06); border:1px solid #eef0f3; }
+    .version-banner{
+      background:#111827;
+      color:#fff;
+      padding:12px 16px;
+      border-radius:12px;
+      font-weight:700;
+      margin-bottom:20px;
+    }
 
-    .embedStatus{
-      display:flex; align-items:center; gap:10px;
-      padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px;
-      background:#fafafa; margin: 12px 0 12px; font-size:12.5px; color:#334155;
+    .card {
+      background:#fff;
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 2px 10px rgba(0,0,0,.06);
+      border:1px solid #eef0f3;
     }
-    .badge{
-      margin-left:auto; display:inline-flex; align-items:center; gap:8px;
-      padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#fff;
-      font-weight:900; white-space:nowrap;
+
+    .status{
+      padding:10px;
+      border-radius:8px;
+      margin-bottom:12px;
+      font-weight:600;
     }
-    .dot{ width:8px; height:8px; border-radius:999px; background:#94a3b8; }
+
+    .loading{ background:#fff7ed; color:#b45309; }
+    .ok{ background:#ecfdf5; color:#047857; }
+    .error{ background:#fef2f2; color:#b91c1c; }
 
     .container{
-      border:1px solid #eef0f3; border-radius:14px;
-      padding:14px; min-height:520px; background:#fff; overflow:visible;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      min-height:500px;
+      padding:12px;
+      overflow:visible;
     }
 
-    /* If it renders in an iframe, make it full width */
-    #ucpm-embedded-form iframe { width:100% !important; border:0 !important; min-height:600px; display:block; }
-
-    .ot-open-webform{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius:12px; border:1px solid #e5e7eb;
-      background:#fff; font-weight:800; cursor:pointer;
+    #ucpm-embedded-form iframe{
+      width:100% !important;
+      min-height:600px;
+      border:0 !important;
+      display:block;
     }
   </style>
 
-  <!-- ✅ OneTrust stub (use tenant domain as worker) -->
+  <!-- OneTrust Stub -->
   <script
     defer
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
@@ -50,103 +65,86 @@
 </head>
 
 <body>
-  <main class="wrap">
-    <div class="card">
-      <div class="embedStatus">
-        <strong>Status:</strong>
-        <span id="msg">Loading OneTrust…</span>
-        <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
-      </div>
+  <div class="wrap">
 
-      <div id="ucpm-embedded-form" class="container">
-        <!-- ✅ Trigger button that OneTrust provides -->
-        <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877">
-          Open web form
-        </button>
-      </div>
+    <div class="version-banner">
+      🚀 UCPM DEMO VERSION 3.0 – OTSKD INSTALL FIX
     </div>
-  </main>
+
+    <div id="statusBox" class="status loading">
+      Loading OneTrust SDK...
+    </div>
+
+    <div id="ucpm-embedded-form" class="container">
+      <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877">
+        Open web form
+      </button>
+    </div>
+
+  </div>
 
   <script>
-    (function(){
-      const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
-      const container = document.getElementById("ucpm-embedded-form");
-      const btn = document.getElementById("ot-0412853a-91ac-4d1b-ae16-0555b88fb877");
-      const msg = document.getElementById("msg");
-      const dot = document.getElementById("dot");
-      const state = document.getElementById("state");
+    const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
+    const statusBox = document.getElementById("statusBox");
+    const container = document.getElementById("ucpm-embedded-form");
+    const btn = document.getElementById("ot-0412853a-91ac-4d1b-ae16-0555b88fb877");
 
-      function setStatus(s, m){
-        state.textContent = s.toUpperCase();
-        msg.textContent = m || "";
-        dot.style.background =
-          (s==="loading") ? "#f59e0b" :
-          (s==="ok") ? "#22c55e" :
-          (s==="error") ? "#ef4444" :
-          "#94a3b8";
+    function setStatus(type, text){
+      statusBox.className = "status " + type;
+      statusBox.innerText = text;
+    }
+
+    function rendered(){
+      const iframe = container.querySelector("iframe") || document.querySelector("iframe");
+      if (iframe) {
+        if (!container.contains(iframe)) {
+          container.innerHTML = "";
+          container.appendChild(iframe);
+        }
+        return true;
       }
+      return false;
+    }
 
-      function rendered(){
-        const iframe = container.querySelector("iframe") || document.querySelector("iframe");
-        if (iframe) {
-          if (!container.contains(iframe)) {
-            container.innerHTML = "";
-            container.appendChild(iframe);
+    let tries = 0;
+    const wait = setInterval(() => {
+      tries++;
+
+      if (typeof window.OtSdk === "function") {
+
+        clearInterval(wait);
+        setStatus("loading","OtSdk detected. Installing CP...");
+
+        window.OtSdk("consent","RegisterEvent","external");
+        window.OtSdk("consent","InstallCP",CP_ID,function(res){
+          console.log("InstallCP callback:", res);
+        });
+
+        let openTries = 0;
+        const opener = setInterval(() => {
+          openTries++;
+          btn.click();
+
+          if (rendered()) {
+            clearInterval(opener);
+            setStatus("ok","✅ Form rendered successfully.");
           }
-          return true;
-        }
-        // Sometimes it injects HTML instead of iframe
-        const hasNonButtonContent = Array.from(container.children).some(el => el !== btn);
-        return hasNonButtonContent;
+
+          if (openTries > 20) {
+            clearInterval(opener);
+            setStatus("error","❌ Installed but nothing rendered. Likely CP type mismatch or wrong trigger ID.");
+          }
+        },500);
+
       }
 
-      setStatus("loading","Waiting for OneTrust SDK…");
+      if (tries > 25) {
+        clearInterval(wait);
+        setStatus("error","❌ OtSdk not detected. Stub not fully initialised.");
+      }
 
-      // Wait for OtSdk command queue to exist
-      let tries = 0;
-      const wait = setInterval(() => {
-        tries++;
-
-        // OtSdk is used for the "consent" InstallCP flow
-        const hasOtSdk = (typeof window.OtSdk === "function");
-
-        if (hasOtSdk) {
-          clearInterval(wait);
-
-          setStatus("loading","Installing Collection Point (OtSdk InstallCP)…");
-
-          // Ensure it's manual/external install
-          window.OtSdk("consent", "RegisterEvent", "external");
-          window.OtSdk("consent", "InstallCP", CP_ID, function(ok){
-            console.log("InstallCP callback:", ok);
-          });
-
-          // Try to open/render the form
-          let openTries = 0;
-          const opener = setInterval(() => {
-            openTries++;
-            btn && btn.click();
-
-            if (rendered()) {
-              clearInterval(opener);
-              setStatus("ok","Form rendered.");
-            }
-
-            if (openTries >= 20) {
-              clearInterval(opener);
-              setStatus("error","Installed but nothing rendered. Check CP type is Embedded Web Form CP and the trigger id belongs to this CP.");
-            }
-          }, 500);
-
-          return;
-        }
-
-        if (tries >= 30) {
-          clearInterval(wait);
-          setStatus("error","OtSdk not detected. Stub loaded but SDK queue not available.");
-        }
-      }, 300);
-    })();
+    },300);
   </script>
+
 </body>
 </html>
