@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UCPM – Embedded en Modal</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin:0; background:#f6f7f9; }
+    .wrap { max-width:980px; margin:0 auto; padding:24px; }
+    .card { background:#fff; border-radius:14px; padding:18px; margin:14px 0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+    .back-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 14px; border-radius:999px; text-decoration:none;
+      font-size:13px; font-weight:600; color:#1d4ed8;
+      background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25);
+      white-space:nowrap;
+    }
+    .btn {
+      padding:10px 12px; border-radius:10px; border:1px solid #d7dbe0;
+      background:#fff; cursor:pointer; font-weight:800;
+    }
+    .btn:hover { background:#f2f4f7; }
+    .muted{ color:#6b7280; font-size:13px; }
+
+    /* Modal */
+    .overlay{
+      position:fixed; inset:0; background:rgba(2,6,23,.55);
+      display:none; align-items:center; justify-content:center; padding:18px;
+      z-index: 999;
+    }
+    .overlay.open{ display:flex; }
+    .modal{
+      width: min(920px, 96vw);
+      max-height: 86vh;
+      background:#fff; border-radius:16px;
+      box-shadow:0 20px 60px rgba(2,6,23,.35);
+      overflow:hidden;
+      display:flex; flex-direction:column;
+    }
+    .modalHeader{
+      display:flex; align-items:center; gap:10px;
+      padding:12px 14px; border-bottom:1px solid #eef0f3;
+      background:#fafafa;
+    }
+    .modalHeader strong{ font-weight:900; }
+    .modalHeader .spacer{ margin-left:auto; }
+    .closeBtn{
+      border:1px solid #e5e7eb; background:#fff; border-radius:10px;
+      padding:8px 10px; cursor:pointer; font-weight:900;
+    }
+    .closeBtn:hover{ background:#f2f4f7; }
+    .modalBody{
+      padding:12px;
+      overflow:auto;
+      background:#fff;
+    }
+    .container{
+      border:1px solid #eef0f3; border-radius:12px; padding:12px;
+      min-height: 260px; background:#fff;
+    }
+
+    .embedStatus{
+      display:flex; align-items:center; gap:10px;
+      padding:8px 10px; border:1px solid #e5e7eb; border-radius:10px;
+      background:#fafafa; margin: 10px 0 12px; font-size:12.5px; color:#334155;
+    }
+    .badge{ margin-left:auto; display:inline-flex; align-items:center; gap:8px; padding:4px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#fff; color:#64748b; font-weight:800; }
+    .dot{ width:8px; height:8px; border-radius:999px; background:#94a3b8; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a href="./index.html" class="back-btn">← Volver al selector</a>
+
+    <div class="card">
+      <h1>Embedded Form en Modal</h1>
+      <p class="muted">Ejemplo típico: CTA abre modal y el usuario completa el embedded dentro.</p>
+
+      <button class="btn" id="openModal">Abrir modal con embedded</button>
+    </div>
+  </main>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalHeader">
+        <strong id="modalTitle">Preferencias de comunicación</strong>
+        <span class="spacer"></span>
+        <button class="closeBtn" id="closeModal">✕ Cerrar</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="embedStatus">
+          <strong>Estado:</strong> <span id="msg">Idle</span>
+          <span class="badge"><span class="dot" id="dot"></span><span id="state">IDLE</span></span>
+        </div>
+        <div id="ucpm-embedded-form" class="container"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // 🔁 CAMBIA ESTOS 3 VALORES
+  const EMBED_SCRIPT_SRC = "https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js";
+  const EMBED_COLLECTION_POINT_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
+  const EMBED_WORKER = "https://consent-api.onetrust.com";
+
+  const overlay = document.getElementById("overlay");
+  const openBtn = document.getElementById("openModal");
+  const closeBtn = document.getElementById("closeModal");
+  const msg = document.getElementById("msg");
+  const dot = document.getElementById("dot");
+  const state = document.getElementById("state");
+  const container = document.getElementById("ucpm-embedded-form");
+
+  function setStatus(s, m){
+    state.textContent = s.toUpperCase();
+    msg.textContent = m || "";
+    dot.style.background = (s==="loading") ? "#f59e0b" : (s==="ok") ? "#22c55e" : (s==="error") ? "#ef4444" : "#94a3b8";
+  }
+
+  function loadEmbeddedOnce(){
+    // Evita duplicar script si abres/cierra varias veces
+    if (document.getElementById("ot-embed-script")) return;
+
+    setStatus("loading","Cargando script…");
+    container.innerHTML = "";
+
+    const sc = document.createElement("script");
+    sc.id = "ot-embed-script";
+    sc.src = EMBED_SCRIPT_SRC;
+    sc.async = true;
+    sc.setAttribute("data-id", EMBED_COLLECTION_POINT_ID);
+    sc.setAttribute("worker", EMBED_WORKER);
+
+    sc.onload = () => {
+      setStatus("ok","Script cargado. Si no pinta, revisa Console/Network.");
+      console.log("OT embedded globals:", {
+        OtFormStub: window.OtFormStub,
+        OneTrust: window.OneTrust,
+        Onetrust: window.Onetrust,
+        __OT__: window.__OT__
+      });
+    };
+    sc.onerror = () => setStatus("error","No se pudo cargar el script (bloqueo/red).");
+
+    container.insertAdjacentElement("afterend", sc);
+  }
+
+  function open(){
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden","false");
+    loadEmbeddedOnce();
+  }
+
+  function close(){
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden","true");
+  }
+
+  openBtn.addEventListener("click", open);
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && overlay.classList.contains("open")) close(); });
+
+  setStatus("idle","Idle");
+})();
+</script>
+</body>
+</html>
