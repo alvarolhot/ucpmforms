@@ -1,61 +1,40 @@
-<!-- UCPM DEMO VERSION 3.0 – 20:15 -->
+<!-- UCPM DEMO VERSION 3.1 – 20:10 -->
 
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UCPM DEMO VERSION 3.0</title>
+  <title>UCPM DEMO VERSION 3.1</title>
 
   <style>
     body { margin:0; background:#f6f7f9; font-family:system-ui; }
     .wrap { max-width:980px; margin:0 auto; padding:24px; }
 
     .version-banner{
-      background:#111827;
-      color:#fff;
-      padding:12px 16px;
-      border-radius:12px;
-      font-weight:700;
-      margin-bottom:20px;
-    }
-
-    .card {
-      background:#fff;
-      border-radius:14px;
-      padding:18px;
-      box-shadow:0 2px 10px rgba(0,0,0,.06);
-      border:1px solid #eef0f3;
+      background:#111827; color:#fff; padding:12px 16px; border-radius:12px;
+      font-weight:800; margin-bottom:16px;
     }
 
     .status{
-      padding:10px;
-      border-radius:8px;
-      margin-bottom:12px;
-      font-weight:600;
+      padding:10px 12px; border-radius:10px; margin-bottom:12px; font-weight:700;
+      border:1px solid #e5e7eb;
     }
-
     .loading{ background:#fff7ed; color:#b45309; }
     .ok{ background:#ecfdf5; color:#047857; }
     .error{ background:#fef2f2; color:#b91c1c; }
 
     .container{
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      min-height:500px;
-      padding:12px;
-      overflow:visible;
+      border:1px solid #e5e7eb; border-radius:12px; min-height:520px;
+      padding:12px; background:#fff; overflow:visible;
     }
 
     #ucpm-embedded-form iframe{
-      width:100% !important;
-      min-height:600px;
-      border:0 !important;
-      display:block;
+      width:100% !important; min-height:650px; border:0 !important; display:block;
     }
   </style>
 
-  <!-- OneTrust Stub -->
+  <!-- OneTrust Embedded Forms stub -->
   <script
     defer
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
@@ -66,85 +45,103 @@
 
 <body>
   <div class="wrap">
+    <div class="version-banner">🚀 UCPM DEMO VERSION 3.1 – WEBFORM TARGET FIX</div>
 
-    <div class="version-banner">
-      🚀 UCPM DEMO VERSION 3.0 – OTSKD INSTALL FIX
-    </div>
+    <div id="statusBox" class="status loading">Loading OneTrust…</div>
 
-    <div id="statusBox" class="status loading">
-      Loading OneTrust SDK...
-    </div>
-
-    <div id="ucpm-embedded-form" class="container">
-      <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877">
-        Open web form
-      </button>
-    </div>
-
+    <!-- IMPORTANT: this is the explicit target -->
+    <div id="ucpm-embedded-form" class="container"></div>
   </div>
 
   <script>
-    const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
-    const statusBox = document.getElementById("statusBox");
-    const container = document.getElementById("ucpm-embedded-form");
-    const btn = document.getElementById("ot-0412853a-91ac-4d1b-ae16-0555b88fb877");
+    (function(){
+      const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
+      const statusBox = document.getElementById("statusBox");
+      const targetEl = document.getElementById("ucpm-embedded-form");
 
-    function setStatus(type, text){
-      statusBox.className = "status " + type;
-      statusBox.innerText = text;
-    }
+      function setStatus(type, text){
+        statusBox.className = "status " + type;
+        statusBox.innerText = text;
+      }
 
-    function rendered(){
-      const iframe = container.querySelector("iframe") || document.querySelector("iframe");
-      if (iframe) {
-        if (!container.contains(iframe)) {
-          container.innerHTML = "";
-          container.appendChild(iframe);
+      function hasIframe(){
+        return !!targetEl.querySelector("iframe");
+      }
+
+      function tryCall(obj, fnNames, args){
+        for (const name of fnNames) {
+          if (obj && typeof obj[name] === "function") {
+            try { obj[name].apply(obj, args); return name; } catch(e) {}
+          }
         }
-        return true;
+        return null;
       }
-      return false;
-    }
 
-    let tries = 0;
-    const wait = setInterval(() => {
-      tries++;
+      setStatus("loading","Waiting for OneTrust.webform…");
 
-      if (typeof window.OtSdk === "function") {
+      let tries = 0;
+      const wait = setInterval(() => {
+        tries++;
 
-        clearInterval(wait);
-        setStatus("loading","OtSdk detected. Installing CP...");
+        const webform = window.OneTrust && window.OneTrust.webform;
+        if (webform) {
+          clearInterval(wait);
 
-        window.OtSdk("consent","RegisterEvent","external");
-        window.OtSdk("consent","InstallCP",CP_ID,function(res){
-          console.log("InstallCP callback:", res);
-        });
+          // Show what methods exist (useful)
+          console.log("OneTrust.webform available. Methods:", Object.keys(webform || {}));
 
-        let openTries = 0;
-        const opener = setInterval(() => {
-          openTries++;
-          btn.click();
+          setStatus("loading","webform detected. Installing CP into target…");
 
-          if (rendered()) {
-            clearInterval(opener);
-            setStatus("ok","✅ Form rendered successfully.");
+          // 1) Install CP (some tenants accept options including target/container)
+          // We try multiple signatures safely.
+          try {
+            // Signature A: InstallCP(cpId, options, cb)
+            if (typeof webform.InstallCP === "function") {
+              webform.InstallCP(CP_ID, { target: "#ucpm-embedded-form", container: "#ucpm-embedded-form", inline: true }, function(r){
+                console.log("InstallCP cb:", r);
+              });
+            }
+          } catch (e) {
+            console.log("InstallCP signature A failed:", e);
           }
 
-          if (openTries > 20) {
-            clearInterval(opener);
-            setStatus("error","❌ Installed but nothing rendered. Likely CP type mismatch or wrong trigger ID.");
+          // 2) Then attempt an explicit render/open into target (varies by tenant)
+          const renderFn = tryCall(webform,
+            ["RenderCP","Render","ShowCP","Show","OpenCP","Open","LoadCP","Load"],
+            [CP_ID, { target: "#ucpm-embedded-form", container: "#ucpm-embedded-form", inline: true }]
+          );
+
+          if (renderFn) {
+            setStatus("loading",`Called ${renderFn}(). Waiting for iframe…`);
+          } else {
+            setStatus("loading","No Render/Open method found. Waiting for auto-render after InstallCP…");
           }
-        },500);
 
-      }
+          // 3) Detect render
+          let checkTries = 0;
+          const checker = setInterval(() => {
+            checkTries++;
 
-      if (tries > 25) {
-        clearInterval(wait);
-        setStatus("error","❌ OtSdk not detected. Stub not fully initialised.");
-      }
+            if (hasIframe()) {
+              clearInterval(checker);
+              setStatus("ok","✅ Form rendered (iframe detected).");
+            }
 
-    },300);
+            if (checkTries > 30) {
+              clearInterval(checker);
+              setStatus("error","❌ webform loaded but iframe not rendered. This usually means CP is configured for Modal or the CP type isn’t Embedded Web Form.");
+            }
+          }, 300);
+
+          return;
+        }
+
+        if (tries > 40) {
+          clearInterval(wait);
+          setStatus("error","❌ OneTrust.webform not found. Stub not initialising.");
+        }
+      }, 250);
+    })();
   </script>
-
 </body>
 </html>
