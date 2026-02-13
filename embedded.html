@@ -27,18 +27,6 @@
       white-space:nowrap;
     }
 
-    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
-    .btn {
-      padding:10px 12px; border-radius:12px; border:1px solid #e5e7eb;
-      background:#fff; cursor:pointer; font-weight:800; font-size:13px;
-    }
-    .btn:hover { background:#f8fafc; }
-    .btnPrimary{
-      border-color: rgba(37,99,235,.30);
-      background: rgba(37,99,235,.10);
-      color:#1d4ed8;
-    }
-
     .muted { color:#64748b; font-size:13px; line-height:1.4; }
 
     .embedStatus{
@@ -58,21 +46,19 @@
     .container{
       border:1px solid #eef0f3; border-radius:14px;
       padding:14px; min-height:280px; background:#fff;
-      overflow:hidden; /* prevents spill */
+      overflow:hidden;
     }
 
-    /* 👇 Hardening: whatever OT injects, keep it inside */
+    /* Keep whatever OT injects inside */
     #ucpm-embedded-form, #ucpm-embedded-form * { box-sizing: border-box; }
     #ucpm-embedded-form iframe {
       width: 100% !important;
       max-width: 100% !important;
       border: 0 !important;
       display: block;
-      min-height: 560px; /* gives the embedded UI room */
+      min-height: 560px;
     }
-    #ucpm-embedded-form > * {
-      max-width: 100% !important;
-    }
+    #ucpm-embedded-form > * { max-width: 100% !important; }
 
     details.guide { margin-top: 12px; }
     details.guide > summary{
@@ -99,6 +85,13 @@
       .badge { margin-left:0; }
     }
   </style>
+
+  <!-- ✅ OneTrust Production website integration (as provided) -->
+  <script
+    src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+    data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
+    worker="https://consent-api.onetrust.com"
+  ></script>
 </head>
 
 <body>
@@ -107,117 +100,70 @@
       <div class="brand">
         <a href="./index.html" class="back-btn">← Back to selector</a>
         <h1 style="margin-top:12px;">Embedded Form (OneTrust)</h1>
-        <p>This page is dedicated to rendering the standard OneTrust embedded form inside a container.</p>
+        <p>Standalone page to render the standard OneTrust embedded form inside a container.</p>
       </div>
     </div>
 
     <section class="card">
       <div class="embedStatus">
-        <strong>Status:</strong> <span id="msg">Idle…</span>
-        <span class="badge"><span class="dot" id="dot"></span><span id="state">IDLE</span></span>
+        <strong>Status:</strong> <span id="msg">Waiting for render…</span>
+        <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
       </div>
 
-      <div class="actions">
-        <button class="btn btnPrimary" type="button" id="btnReload">Reload embedded form</button>
-        <span class="muted">Tip: open DevTools → Network and filter by <span class="k">OtFormStub.js</span> or <span class="k">embedded</span>.</span>
-      </div>
-
-      <div style="height:10px;"></div>
-
-      <!-- Target container -->
       <div id="ucpm-embedded-form" class="container"></div>
 
-      <!-- The embed script will be injected right here (classic placement) -->
-      <div id="embed-script-anchor"></div>
-
       <details class="guide">
-        <summary>🛠 Troubleshooting (if it loads but shows nothing)</summary>
+        <summary>🛠 Troubleshooting (if it doesn’t render)</summary>
         <div class="guideBody">
           <ul>
-            <li><strong>Wrong script URL / environment</strong>: try the CDN domain if your tenant uses it.</li>
-            <li><strong>Collection Point origin restrictions</strong>: the CP often needs the site domain allowed (e.g., your GitHub Pages domain).</li>
+            <li><strong>Origin restrictions on the Collection Point</strong>: your GitHub Pages domain must be allowed.</li>
             <li><strong>Adblock / privacy extensions</strong>: test in Incognito with extensions disabled.</li>
-            <li><strong>Script expects a different target</strong>: this version injects the script immediately after the container (common requirement).</li>
+            <li><strong>Wrong environment/domain</strong>: confirm you’re using the correct tenant domain (trial vs prod vs cdn).</li>
           </ul>
           <div class="muted" style="margin-top:10px;">
-            If you share your <strong>Integrations</strong> tab snippet (script src + CP ID + worker), I’ll lock it to the exact config.
+            Check DevTools → <span class="k">Console</span> for errors, and <span class="k">Network</span> for blocked requests.
           </div>
         </div>
       </details>
     </section>
   </main>
 
-<script>
-(function(){
-  // ✅ Replace these 3 values with the exact ones from OneTrust > Integrations
-  // If this still doesn't render, your tenant might require the CDN domain (privacyportaltrial-cdn...)
-  const EMBED_SCRIPT_SRC = "https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js";
-  const EMBED_COLLECTION_POINT_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
-  const EMBED_WORKER = "https://consent-api.onetrust.com";
+  <script>
+    (function(){
+      const msg = document.getElementById("msg");
+      const dot = document.getElementById("dot");
+      const state = document.getElementById("state");
+      const container = document.getElementById("ucpm-embedded-form");
 
-  const msg = document.getElementById("msg");
-  const dot = document.getElementById("dot");
-  const state = document.getElementById("state");
-  const container = document.getElementById("ucpm-embedded-form");
-  const anchor = document.getElementById("embed-script-anchor");
-  const btnReload = document.getElementById("btnReload");
+      function setStatus(s, m){
+        state.textContent = s.toUpperCase();
+        msg.textContent = m || "";
+        dot.style.background =
+          (s==="loading") ? "#f59e0b" :
+          (s==="ok") ? "#22c55e" :
+          (s==="error") ? "#ef4444" :
+          "#94a3b8";
+      }
 
-  function setStatus(s, m){
-    state.textContent = s.toUpperCase();
-    msg.textContent = m || "";
-    dot.style.background =
-      (s==="loading") ? "#f59e0b" :
-      (s==="ok") ? "#22c55e" :
-      (s==="error") ? "#ef4444" :
-      "#94a3b8";
-  }
+      setStatus("loading","Script loaded in <head>. Waiting for OneTrust to render…");
 
-  function injectScript(){
-    setStatus("loading","Loading OneTrust script…");
-    container.innerHTML = "";
-
-    const prev = document.getElementById("ot-embed-script");
-    if (prev) prev.remove();
-
-    const sc = document.createElement("script");
-    sc.id = "ot-embed-script";
-    sc.src = EMBED_SCRIPT_SRC;
-    sc.async = true;
-
-    // attrs used by OtFormStub
-    sc.setAttribute("data-id", EMBED_COLLECTION_POINT_ID);
-    sc.setAttribute("worker", EMBED_WORKER);
-
-    sc.onload = () => {
-      setStatus("ok","Script loaded. Waiting for the form to render…");
-
-      // quick visibility check after a moment
+      // Render detection
       setTimeout(() => {
         const hasContent = container.children.length > 0 || (container.textContent || "").trim().length > 0;
-        if (!hasContent) {
-          setStatus("error","Loaded, but nothing rendered. Likely: origin not allowed in the CP, wrong script URL, adblock, or wrong worker.");
-        } else {
+        if (hasContent) {
           setStatus("ok","Form rendered.");
+        } else {
+          setStatus("error","Nothing rendered. Most common causes: origin not allowed on CP, blocker, or wrong tenant domain.");
         }
-      }, 1500);
 
-      console.log("OT embedded globals:", {
-        OtFormStub: window.OtFormStub,
-        OneTrust: window.OneTrust,
-        Onetrust: window.Onetrust,
-        __OT__: window.__OT__
-      });
-    };
-
-    sc.onerror = () => setStatus("error","Could not load the script (network/blocker). Check DevTools → Network.");
-
-    // Classic placement: immediately after the container
-    anchor.insertAdjacentElement("beforebegin", sc);
-  }
-
-  btnReload.addEventListener("click", injectScript);
-  window.addEventListener("load", injectScript);
-})();
-</script>
+        console.log("OT embedded globals:", {
+          OtFormStub: window.OtFormStub,
+          OneTrust: window.OneTrust,
+          Onetrust: window.Onetrust,
+          __OT__: window.__OT__
+        });
+      }, 1800);
+    })();
+  </script>
 </body>
 </html>
