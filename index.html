@@ -11,27 +11,58 @@
     .card { background:#fff; border-radius:14px; padding:18px; margin:14px 0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
     h1 { margin: 0 0 8px; font-size: 22px; }
     p { margin: 6px 0 0; color:#6b7280; line-height:1.35; }
+
     .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
-    a.tile {
+    a.tile{
       display:block; text-decoration:none; color: inherit;
       border:1px solid #eef0f3; border-radius:14px; padding:16px;
       transition: all .15s ease; background:#fff;
     }
     a.tile:hover { transform: translateY(-1px); box-shadow: 0 10px 25px rgba(2,6,23,.08); }
     .title { display:flex; align-items:center; gap:10px; font-weight:900; }
-    .badge { margin-left:auto; font-size:12px; font-weight:800; color:#1d4ed8; background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25); padding:4px 8px; border-radius:999px; white-space:nowrap; }
+    .badge {
+      margin-left:auto; font-size:12px; font-weight:800; color:#1d4ed8;
+      background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25);
+      padding:4px 8px; border-radius:999px; white-space:nowrap;
+    }
     .muted { font-size:13px; color:#6b7280; margin-top:8px; line-height:1.35; }
 
-    .note {
+    /* Guide accordion */
+    details.guide{
       margin-top: 14px;
       border: 1px dashed #e5e7eb;
       background: #fafafa;
       border-radius: 14px;
-      padding: 14px;
+      padding: 12px 14px;
     }
-    .note h2 { margin: 0 0 6px; font-size: 15px; }
-    .note ul { margin: 8px 0 0; padding-left: 18px; color:#475569; }
-    .note li { margin: 6px 0; }
+    details.guide summary{
+      cursor:pointer;
+      font-weight: 900;
+      color:#0f172a;
+      list-style:none;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+    }
+    details.guide summary::-webkit-details-marker{ display:none; }
+    .chev{ margin-left:auto; color:#64748b; font-weight:800; }
+    .guideContent{ padding-top: 10px; color:#475569; }
+    .guideContent h2{ margin: 10px 0 6px; font-size: 14px; color:#0f172a; }
+    .guideContent ul{ margin: 8px 0 0; padding-left: 18px; }
+    .guideContent li{ margin: 6px 0; line-height:1.35; }
+    .pill{
+      display:inline-block;
+      font-size:12px;
+      font-weight:900;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      color:#0f172a;
+      margin-right:8px;
+    }
+    code{ background:#f1f5f9; padding:2px 6px; border-radius:8px; }
 
     @media (max-width: 780px){ .grid{ grid-template-columns: 1fr; } }
   </style>
@@ -40,12 +71,12 @@
   <main class="wrap">
     <div class="card">
       <h1>UCPM Demo Selector</h1>
-      <p>Elige el caso de uso que quieres demostrar. Abajo tienes una guía rápida de cuándo usar <strong>API</strong> vs <strong>HTML + SDK (Embedded)</strong>.</p>
+      <p>Elige el caso de uso que quieres demostrar. Abajo tienes un desplegable con la guía <strong>API vs HTML + SDK (Embedded)</strong>.</p>
 
       <div class="grid">
         <a class="tile" href="./api.html">
           <div class="title">🧾 Custom form → Consent Receipt API <span class="badge">API</span></div>
-          <div class="muted">Simulas un formulario del CMS y envías el receipt por API (ideal si tú controlas la UI/flujo).</div>
+          <div class="muted">Simulas un formulario del CMS y envías el receipt por API (ideal si controlas la UX y el flujo).</div>
         </a>
 
         <a class="tile" href="./embedded.html">
@@ -55,25 +86,57 @@
 
         <a class="tile" href="./modal.html">
           <div class="title">🪟 Embedded Form en Modal <span class="badge">Modal</span></div>
-          <div class="muted">CTA abre una ventana modal y el embedded se completa dentro (patrón típico en banca).</div>
+          <div class="muted">CTA abre una ventana modal y el embedded se completa dentro (patrón típico banca).</div>
         </a>
 
-        <a class="tile" href="./guide.html">
-          <div class="title">🧠 ¿API o Embedded? (Guía) <span class="badge">Playbook</span></div>
-          <div class="muted">Comparativo claro: cuándo conviene API vs HTML+SDK, con señales técnicas y de negocio.</div>
+        <!-- 🔧 Cambia este href al nombre real de tu 4º ejemplo -->
+        <a class="tile" href="./landing.html">
+          <div class="title">🏦 Bank Landing + CTA <span class="badge">UX</span></div>
+          <div class="muted">Página “home” del banco con CTA (sirve para contar el journey completo antes de capturar consentimiento).</div>
         </a>
       </div>
 
-      <div class="note">
-        <h2>Guía rápida: ¿cuándo usar API vs HTML + SDK (Embedded)?</h2>
-        <ul>
-          <li><strong>Usa API</strong> cuando necesitas <strong>UX 100% a medida</strong>, reusar tu propio formulario, validaciones custom, o integrar con tu backend/CRM antes de crear el receipt.</li>
-          <li><strong>Usa Embedded</strong> cuando quieres <strong>time-to-value rápido</strong>, un formulario estándar ya mantenido por OneTrust, y minimizar desarrollo front/back.</li>
-          <li>Si tu equipo tiene fricción con “scripts en front” o políticas CSP estrictas, normalmente <strong>API server-side</strong> es el camino más robusto.</li>
-          <li>Si Marketing quiere iterar rápido sin depender de releases de IT, <strong>Embedded</strong> suele ser el enfoque más ágil.</li>
-        </ul>
-      </div>
+      <details class="guide">
+        <summary>
+          🧠 Guía rápida: ¿cuándo es mejor API vs HTML + SDK (Embedded)?
+          <span class="chev">▼</span>
+        </summary>
+
+        <div class="guideContent">
+          <h2><span class="pill">API</span>Cuándo usarla</h2>
+          <ul>
+            <li><strong>UX 100% a medida</strong>: tu propio formulario, pasos, validaciones, copy, etc.</li>
+            <li>Quieres <strong>orquestar primero</strong> (guardar lead en backend/CRM) y <strong>después</strong> crear el receipt.</li>
+            <li>Restricciones de seguridad en front: <strong>CSP estricta</strong>, política de “no third-party scripts”, entornos con bloqueo corporativo.</li>
+            <li>Necesitas robustez: <strong>retries</strong>, rate limiting, anti-fraude, auditoría y control desde backend.</li>
+          </ul>
+
+          <h2><span class="pill">Embedded</span>Cuándo usarlo (HTML + SDK)</h2>
+          <ul>
+            <li><strong>Time-to-value rápido</strong>: mínimo desarrollo, plug & play.</li>
+            <li>Formulario estándar mantenido por OneTrust (menos carga de mantenimiento de UI).</li>
+            <li>Marketing quiere iterar rápido sin depender de releases complejos.</li>
+            <li>Tu web permite scripts y el Collection Point tiene permitido el <strong>origin/dominio</strong>.</li>
+          </ul>
+
+          <h2>Regla práctica (para contarlo en 15–20s)</h2>
+          <ul>
+            <li>Si <strong>IT/Sec</strong> dice “no scripts en front” → <strong>API (idealmente server-side)</strong>.</li>
+            <li>Si <strong>Marketing</strong> quiere velocidad y estándar → <strong>Embedded</strong>.</li>
+            <li>Si el journey es complejo (multi-step, doble opt-in, condiciones) → normalmente <strong>API</strong>.</li>
+          </ul>
+
+          <p class="muted">Tip técnico: si el embedded “carga script pero no pinta”, normalmente es <strong>origin no permitido</strong> en el CP, CSP, o bloqueo (adblock/seguridad).</p>
+        </div>
+      </details>
     </div>
   </main>
+
+  <script>
+    // Solo para que la flecha cambie (cosmético)
+    const d = document.querySelector('details.guide');
+    const chev = document.querySelector('.chev');
+    d.addEventListener('toggle', () => { chev.textContent = d.open ? '▲' : '▼'; });
+  </script>
 </body>
 </html>
