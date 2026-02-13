@@ -10,63 +10,44 @@
     body { margin:0; background:#f6f7f9; color:#0f172a; }
     .wrap { max-width:980px; margin:0 auto; padding:24px; }
 
-    .top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
-    .brand h1 { margin:0; font-size:22px; letter-spacing:-0.02em; }
-    .brand p { margin:6px 0 0; color:#64748b; font-size:13px; }
-
     .card {
       background:#fff; border-radius:14px; padding:18px; margin:14px 0;
       box-shadow:0 2px 10px rgba(0,0,0,.06); border:1px solid #eef0f3;
     }
 
-    .back-btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 14px; border-radius:999px; text-decoration:none;
-      font-size:13px; font-weight:700; color:#1d4ed8;
-      background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25);
-      white-space:nowrap;
-    }
-
-    .muted { color:#64748b; font-size:13px; line-height:1.4; }
-
     .embedStatus{
       display:flex; align-items:center; gap:10px;
       padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px;
-      background:#fafafa; margin: 12px 0 12px; font-size:12.5px; color:#334155;
+      background:#fafafa; margin: 12px 0 12px; font-size:12.5px;
     }
+
     .badge{
       margin-left:auto;
       display:inline-flex; align-items:center; gap:8px;
       padding:4px 10px;
       border-radius:999px; border:1px solid #e5e7eb; background:#fff;
-      color:#64748b; font-weight:900; white-space:nowrap;
+      font-weight:900;
     }
+
     .dot{ width:8px; height:8px; border-radius:999px; background:#94a3b8; }
 
     .container{
-      border:1px solid #eef0f3; border-radius:14px;
-      padding:14px; min-height:280px; background:#fff;
-      overflow: visible; /* important */
+      border:1px solid #eef0f3;
+      border-radius:14px;
+      padding:14px;
+      min-height:400px;
+      background:#fff;
+      overflow:visible;
     }
 
-    #ucpm-embedded-form, #ucpm-embedded-form * { box-sizing: border-box; }
     #ucpm-embedded-form iframe {
       width: 100% !important;
-      max-width: 100% !important;
       border: 0 !important;
-      display: block;
-      min-height: 560px;
-    }
-
-    /* Button trigger styling (can be hidden if you want) */
-    .ot-open-webform{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius:12px; border:1px solid #e5e7eb;
-      background:#fff; font-weight:800; cursor:pointer;
+      min-height: 600px;
     }
   </style>
 
-  <!-- ✅ OneTrust stub (keep in head) -->
+  <!-- OneTrust Stub -->
   <script
     defer
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
@@ -77,36 +58,30 @@
 
 <body>
   <main class="wrap">
-    <div class="top">
-      <div class="brand">
-        <a href="./index.html" class="back-btn">← Back to selector</a>
-        <h1 style="margin-top:12px;">Embedded Form (OneTrust)</h1>
-        <p>Standalone page to render the standard OneTrust embedded form inside a container.</p>
-      </div>
-    </div>
 
-    <section class="card">
+    <div class="card">
       <div class="embedStatus">
-        <strong>Status:</strong> <span id="msg">Waiting for render…</span>
-        <span class="badge"><span class="dot" id="dot"></span><span id="state">LOADING</span></span>
+        <strong>Status:</strong>
+        <span id="msg">Waiting for OneTrust SDK...</span>
+        <span class="badge">
+          <span class="dot" id="dot"></span>
+          <span id="state">LOADING</span>
+        </span>
       </div>
 
-      <div id="ucpm-embedded-form" class="container">
-        <!-- ✅ Use the OneTrust trigger button INSIDE the container -->
-        <button class="ot-open-webform" id="ot-0412853a-91ac-4d1b-ae16-0555b88fb877">
-          Open web form
-        </button>
-      </div>
-    </section>
+      <!-- INLINE RENDER TARGET -->
+      <div id="ucpm-embedded-form" class="container"></div>
+
+    </div>
   </main>
 
   <script>
-    (function(){
+    (function () {
+      const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
+      const container = document.getElementById("ucpm-embedded-form");
       const msg = document.getElementById("msg");
       const dot = document.getElementById("dot");
       const state = document.getElementById("state");
-      const container = document.getElementById("ucpm-embedded-form");
-      const btn = document.getElementById("ot-0412853a-91ac-4d1b-ae16-0555b88fb877");
 
       function setStatus(s, m){
         state.textContent = s.toUpperCase();
@@ -118,36 +93,48 @@
           "#94a3b8";
       }
 
-      setStatus("loading","Loading OneTrust…");
+      setStatus("loading","Loading OneTrust SDK...");
 
-      // auto-open after stub is ready
-      function tryOpen(){
-        if (!btn) return;
-        btn.click();
-      }
+      let attempts = 0;
+      const waitForSDK = setInterval(() => {
+        attempts++;
 
-      window.addEventListener("load", () => {
-        // try a few times (GH Pages can be slower)
-        let attempts = 0;
-        const t = setInterval(() => {
-          attempts++;
-          tryOpen();
+        if (window.OneTrust &&
+            window.OneTrust.webform &&
+            typeof window.OneTrust.webform.InstallCP === "function") {
 
-          const iframe = container.querySelector("iframe");
-          if (iframe) {
-            clearInterval(t);
-            setStatus("ok","Form rendered (iframe detected).");
-            // optional: hide the button once rendered
-            btn.style.display = "none";
-          }
+          clearInterval(waitForSDK);
 
-          if (attempts >= 10) {
-            clearInterval(t);
-            setStatus("error","No iframe detected. If Network is 200, the usual cause is CP not linked to this trigger id or CP isn’t configured to render inline via trigger.");
-          }
-        }, 600);
-      });
+          setStatus("loading","Installing Collection Point...");
+
+          window.OneTrust.webform.InstallCP(CP_ID);
+
+          const detectRender = setInterval(() => {
+            const iframe = container.querySelector("iframe");
+            if (iframe) {
+              clearInterval(detectRender);
+              setStatus("ok","Form rendered successfully.");
+            }
+          }, 300);
+
+          setTimeout(() => {
+            const iframe = container.querySelector("iframe");
+            if (!iframe) {
+              setStatus("error","CP installed but no iframe detected. Check: CP is Published, Manual mode enabled, domain allowed.");
+            }
+          }, 7000);
+
+        }
+
+        if (attempts > 25) {
+          clearInterval(waitForSDK);
+          setStatus("error","OneTrust SDK not detected.");
+        }
+
+      }, 300);
+
     })();
   </script>
+
 </body>
 </html>
