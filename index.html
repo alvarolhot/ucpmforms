@@ -9,8 +9,8 @@
     body { margin:0; background:#f6f7f9; }
     .wrap { max-width: 980px; margin:0 auto; padding:24px; }
     .card { background:#fff; border-radius:14px; padding:18px; margin:14px 0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
-    h1 { margin: 0 0 10px; font-size: 22px; }
-    p { margin: 6px 0 0; color:#6b7280; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    p { margin: 6px 0 0; color:#6b7280; line-height:1.35; }
     .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
     a.tile {
       display:block; text-decoration:none; color: inherit;
@@ -19,8 +19,20 @@
     }
     a.tile:hover { transform: translateY(-1px); box-shadow: 0 10px 25px rgba(2,6,23,.08); }
     .title { display:flex; align-items:center; gap:10px; font-weight:900; }
-    .badge { margin-left:auto; font-size:12px; font-weight:800; color:#1d4ed8; background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25); padding:4px 8px; border-radius:999px; }
+    .badge { margin-left:auto; font-size:12px; font-weight:800; color:#1d4ed8; background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.25); padding:4px 8px; border-radius:999px; white-space:nowrap; }
     .muted { font-size:13px; color:#6b7280; margin-top:8px; line-height:1.35; }
+
+    .note {
+      margin-top: 14px;
+      border: 1px dashed #e5e7eb;
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .note h2 { margin: 0 0 6px; font-size: 15px; }
+    .note ul { margin: 8px 0 0; padding-left: 18px; color:#475569; }
+    .note li { margin: 6px 0; }
+
     @media (max-width: 780px){ .grid{ grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -28,23 +40,38 @@
   <main class="wrap">
     <div class="card">
       <h1>UCPM Demo Selector</h1>
-      <p>Elige el caso de uso que quieres demostrar.</p>
+      <p>Elige el caso de uso que quieres demostrar. Abajo tienes una guía rápida de cuándo usar <strong>API</strong> vs <strong>HTML + SDK (Embedded)</strong>.</p>
 
       <div class="grid">
         <a class="tile" href="./api.html">
           <div class="title">🧾 Custom form → Consent Receipt API <span class="badge">API</span></div>
-          <div class="muted">Simula un formulario del CMS y envía el receipt por API con JWT en sessionStorage.</div>
+          <div class="muted">Simulas un formulario del CMS y envías el receipt por API (ideal si tú controlas la UI/flujo).</div>
         </a>
 
         <a class="tile" href="./embedded.html">
           <div class="title">🧩 Embedded Form (standalone) <span class="badge">Embedded</span></div>
-          <div class="muted">Página dedicada solo a renderizar el embedded form en un contenedor.</div>
+          <div class="muted">Formulario estándar de OneTrust renderizado en un contenedor (rápido de implementar).</div>
         </a>
 
         <a class="tile" href="./modal.html">
           <div class="title">🪟 Embedded Form en Modal <span class="badge">Modal</span></div>
-          <div class="muted">Botón “Abrir modal” que muestra el embedded form dentro de una ventana modal.</div>
+          <div class="muted">CTA abre una ventana modal y el embedded se completa dentro (patrón típico en banca).</div>
         </a>
+
+        <a class="tile" href="./guide.html">
+          <div class="title">🧠 ¿API o Embedded? (Guía) <span class="badge">Playbook</span></div>
+          <div class="muted">Comparativo claro: cuándo conviene API vs HTML+SDK, con señales técnicas y de negocio.</div>
+        </a>
+      </div>
+
+      <div class="note">
+        <h2>Guía rápida: ¿cuándo usar API vs HTML + SDK (Embedded)?</h2>
+        <ul>
+          <li><strong>Usa API</strong> cuando necesitas <strong>UX 100% a medida</strong>, reusar tu propio formulario, validaciones custom, o integrar con tu backend/CRM antes de crear el receipt.</li>
+          <li><strong>Usa Embedded</strong> cuando quieres <strong>time-to-value rápido</strong>, un formulario estándar ya mantenido por OneTrust, y minimizar desarrollo front/back.</li>
+          <li>Si tu equipo tiene fricción con “scripts en front” o políticas CSP estrictas, normalmente <strong>API server-side</strong> es el camino más robusto.</li>
+          <li>Si Marketing quiere iterar rápido sin depender de releases de IT, <strong>Embedded</strong> suele ser el enfoque más ágil.</li>
+        </ul>
       </div>
     </div>
   </main>
