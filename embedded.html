@@ -1,101 +1,116 @@
-<!-- UCPM DEMO VERSION 3.2 – 20:12 -->
+<!-- UCPM DEMO VERSION 3.4 – 20:18 -->
 
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UCPM DEMO VERSION 3.2</title>
+  <title>UCPM DEMO VERSION 3.4</title>
 
   <style>
     body { margin:0; background:#f6f7f9; font-family:system-ui; }
     .wrap { max-width:980px; margin:0 auto; padding:24px; }
+
     .version-banner{
       background:#111827; color:#fff; padding:12px 16px; border-radius:12px;
       font-weight:800; margin-bottom:16px;
     }
-    .card { background:#fff; border-radius:14px; padding:16px; border:1px solid #eef0f3; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; }
-    .pill { padding:8px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#fafafa; font-weight:700; font-size:12px; }
-    .ok { background:#ecfdf5; border-color:#bbf7d0; color:#047857; }
-    .bad { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
-    .warn { background:#fff7ed; border-color:#fed7aa; color:#b45309; }
-    code { background:#0b1220; color:#e5e7eb; padding:2px 6px; border-radius:6px; }
-    .box { margin-top:12px; padding:12px; border:1px dashed #e5e7eb; border-radius:12px; background:#fff; }
+    .status{
+      padding:10px 12px; border-radius:10px; margin-bottom:12px; font-weight:800;
+      border:1px solid #e5e7eb;
+    }
+    .loading{ background:#fff7ed; color:#b45309; }
+    .ok{ background:#ecfdf5; color:#047857; }
+    .error{ background:#fef2f2; color:#b91c1c; }
+
+    .container{
+      border:1px solid #e5e7eb; border-radius:12px; min-height:520px;
+      padding:12px; background:#fff; overflow:visible;
+    }
+
+    #ucpm-embedded-form iframe{
+      width:100% !important; min-height:650px; border:0 !important; display:block;
+    }
   </style>
 
+  <!-- ✅ OneTrust stub with correct worker for your tenant -->
   <script
     defer
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
     data-id="86cfa775-f542-42b6-8f6d-30a22fc81ba1"
     worker="https://privacyportaltrial.onetrust.com"
+    data-worker="https://privacyportaltrial.onetrust.com"
+    data-domain="privacyportaltrial.onetrust.com"
   ></script>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="version-banner">🚀 UCPM DEMO VERSION 3.2 – ENDPOINT DIAGNOSTIC</div>
+    <div class="version-banner">🚀 UCPM DEMO VERSION 3.4 – WORKER FIX</div>
 
-    <div class="card">
-      <div class="row" id="pills"></div>
+    <div id="statusBox" class="status loading">Loading OneTrust…</div>
 
-      <div class="box" id="details">
-        Running diagnostics…
-      </div>
-    </div>
+    <div id="ucpm-embedded-form" class="container"></div>
   </div>
 
   <script>
     (function(){
-      const pills = document.getElementById("pills");
-      const details = document.getElementById("details");
+      const CP_ID = "86cfa775-f542-42b6-8f6d-30a22fc81ba1";
+      const statusBox = document.getElementById("statusBox");
+      const target = document.getElementById("ucpm-embedded-form");
 
-      function pill(text, cls){
-        const el = document.createElement("div");
-        el.className = "pill " + (cls||"");
-        el.textContent = text;
-        pills.appendChild(el);
+      function setStatus(type, text){
+        statusBox.className = "status " + type;
+        statusBox.innerText = text;
       }
 
-      async function check(url){
-        try{
-          const r = await fetch(url, { method:"GET", credentials:"omit" });
-          return { ok:r.ok, status:r.status, url };
-        }catch(e){
-          return { ok:false, status:"ERR", url, err:String(e) };
-        }
+      function hasIframe(){
+        return !!(target.querySelector("iframe") || document.querySelector("iframe"));
       }
 
-      window.addEventListener("load", async () => {
-        // Show what globals exist
-        pill("OneTrust.webform: " + (!!(window.OneTrust && window.OneTrust.webform)), (window.OneTrust && window.OneTrust.webform) ? "ok":"warn");
-        pill("OtSdk: " + (typeof window.OtSdk === "function"), (typeof window.OtSdk === "function") ? "ok":"warn");
+      setStatus("loading","Waiting for OneTrust.webform…");
 
-        // Check the endpoint we see failing in your Network
-        const url = "https://privacyportaltrial.onetrust.com/cfw/consent/v1/cp/list";
-        const res = await check(url);
+      let tries = 0;
+      const t = setInterval(() => {
+        tries++;
 
-        if (res.status === 404){
-          pill("cfw cp/list: 404", "bad");
-          details.innerHTML =
-            "Your browser is getting <b>404 Not Found</b> from: <br><code>" + res.url + "</code><br><br>" +
-            "That means the <b>Embedded Web Forms service (cfw)</b> is not available on this tenant/host, or the worker host is wrong. " +
-            "This is a <b>tenant/service configuration issue</b>, not a GitHub/HTML issue.";
+        const webform = window.OneTrust && window.OneTrust.webform;
+        if (webform && typeof webform.InstallCP === "function") {
+          clearInterval(t);
+
+          setStatus("loading","SDK ready. Installing CP (manual)…");
+
+          // Try install with target hints (tenant-dependent)
+          try {
+            webform.InstallCP(CP_ID, { target:"#ucpm-embedded-form", container:"#ucpm-embedded-form", inline:true }, function(r){
+              console.log("InstallCP callback:", r);
+            });
+          } catch(e) {
+            // Fallback signature
+            try { webform.InstallCP(CP_ID); } catch(_) {}
+          }
+
+          let checks = 0;
+          const c = setInterval(() => {
+            checks++;
+            if (hasIframe()) {
+              clearInterval(c);
+              setStatus("ok","✅ Form rendered.");
+            }
+            if (checks > 35) {
+              clearInterval(c);
+              setStatus("error","❌ SDK ok but no iframe. Next step: open Network → Response of /cfw/... to see exact reason.");
+            }
+          }, 300);
+
           return;
         }
 
-        if (res.status === "ERR"){
-          pill("cfw cp/list: ERR", "bad");
-          details.innerHTML =
-            "Fetch failed for: <br><code>" + res.url + "</code><br><br>Error: <code>" + res.err + "</code>";
-          return;
+        if (tries > 40) {
+          clearInterval(t);
+          setStatus("error","❌ OneTrust.webform not detected.");
         }
-
-        pill("cfw cp/list: " + res.status, res.ok ? "ok":"warn");
-        details.innerHTML =
-          "Endpoint responded with status <b>" + res.status + "</b>:<br><code>" + res.url + "</code><br><br>" +
-          "If it is not 404, the service exists. Then we can focus on CP render methods.";
-      });
+      }, 250);
     })();
   </script>
 </body>
